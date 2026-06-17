@@ -1264,6 +1264,909 @@ function wavesai_polishing_brain_sections() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// 14. SMART MODE - AI PROMPT ENHANCEMENT (AJAX HANDLER)
+// ─────────────────────────────────────────────────────────────────────────────
+add_action( 'wp_ajax_wavesai_smart_enhance', 'wavesai_smart_enhance_handler' );
+function wavesai_smart_enhance_handler() {
+    if ( ! is_user_logged_in() ) wp_send_json_error( 'Not logged in' );
+    $prompt = sanitize_textarea_field( $_POST['prompt'] ?? '' );
+    $mode   = sanitize_text_field( $_POST['mode'] ?? 'enhance' );
+    if ( empty( $prompt ) && $mode === 'enhance' ) wp_send_json_error( 'Empty prompt' );
+
+    $api_key = get_option('wavesai_oai_key', '');
+    if ( empty($api_key) ) {
+        $api_key = base64_decode('c2stcHJvai0yOXcwNXZ2RlFMYWYzMG9KSm1ReGpnV19kX2VkLUtNeTdUQVFuUjZuZVQ2VkVCSWJSOTlCN05BUVBXanl4SlBFWldkUWp2MEN1OFQzQmxia0ZKSnd6aXYtWFRjUGN2OTRNQTU3ZmpGbEJFdVNQcFg1eHBreEYwd19wcUl4S1A3V29xOUNIMV84X3pTVE9qYTdtVlJGdmgwaWVUd0E=');
+    }
+
+    if ( $mode === 'enhance' ) {
+        $system = 'You are an expert AI image prompt engineer. Take the user\'s simple image description and transform it into a detailed, professional prompt that will produce stunning results with AI image generators like Flux and Stable Diffusion. Add specific details about lighting, composition, style, mood, colors, and technical quality. Keep it under 200 words. Return ONLY the enhanced prompt text, nothing else.';
+        $messages = [
+            ['role' => 'system', 'content' => $system],
+            ['role' => 'user', 'content' => 'Enhance this image prompt: ' . $prompt]
+        ];
+    } elseif ( $mode === 'quote' ) {
+        $style = sanitize_text_field( $_POST['style'] ?? 'motivational' );
+        $system = 'You are a motivational quote writer. Generate a short, powerful, original motivational quote (1-2 sentences max). Make it uplifting, memorable, and shareable on social media. Return ONLY the quote text, no attribution, no quotation marks.';
+        $messages = [
+            ['role' => 'system', 'content' => $system],
+            ['role' => 'user', 'content' => 'Generate a ' . $style . ' motivational quote']
+        ];
+    } elseif ( $mode === 'quote_prompt' ) {
+        $style = sanitize_text_field( $_POST['style'] ?? 'cute-animals' );
+        $system = 'You are an expert AI image prompt engineer specialising in beautiful background scenes. Generate a detailed image prompt for a background scene that will have motivational text overlaid on it. The scene should be visually stunning, have areas of soft/blurred background suitable for text overlay, and match the requested style. Do NOT include any text in the image prompt. Keep under 150 words. Return ONLY the prompt.';
+        $style_map = [
+            'cute-animals' => 'An adorable fluffy kitten or puppy in a cozy setting with soft flowers, warm golden bokeh lighting, dreamy atmosphere',
+            'nature' => 'A serene nature landscape with golden hour sunlight, wildflowers, rolling hills or peaceful lake, soft atmospheric haze',
+            'ocean' => 'A tranquil ocean beach scene at sunset or sunrise, soft waves, pastel sky colors, calm and peaceful mood',
+            'cozy' => 'A cozy indoor scene with soft blankets, candles, warm lighting, coffee cup, books, hygge atmosphere',
+            'abstract' => 'A beautiful abstract gradient background with soft flowing shapes, dreamy pastel or jewel-tone colors, bokeh lights',
+            'floral' => 'A gorgeous arrangement of fresh flowers in soft focus, roses and peonies, dewy petals, romantic warm lighting',
+            'galaxy' => 'A stunning cosmic galaxy scene with nebula clouds, stars, deep space colors of purple blue and gold, ethereal',
+            'vintage' => 'A warm vintage-style scene with sepia tones, old books, dried flowers, lace doilies, nostalgic cozy atmosphere'
+        ];
+        $base = $style_map[$style] ?? $style_map['cute-animals'];
+        $messages = [
+            ['role' => 'system', 'content' => $system],
+            ['role' => 'user', 'content' => 'Create a background image prompt in this style: ' . $base . '. Make it unique and beautiful. Do not include any text or words in the image.']
+        ];
+    }
+
+    $body = wp_json_encode([
+        'model'       => 'gpt-4o-mini',
+        'messages'    => $messages,
+        'max_tokens'  => 300,
+        'temperature' => 0.8,
+    ]);
+
+    $resp = wp_remote_post( 'https://api.openai.com/v1/chat/completions', [
+        'headers' => [
+            'Authorization' => 'Bearer ' . $api_key,
+            'Content-Type'  => 'application/json',
+        ],
+        'body'    => $body,
+        'timeout' => 30,
+    ]);
+
+    if ( is_wp_error( $resp ) ) wp_send_json_error( $resp->get_error_message() );
+    $data = json_decode( wp_remote_retrieve_body( $resp ), true );
+    $text = $data['choices'][0]['message']['content'] ?? '';
+    if ( empty( $text ) ) wp_send_json_error( 'No response from AI' );
+    wp_send_json_success( ['text' => trim( $text )] );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 14b. SMART MODE - FRONTEND JS
+// ─────────────────────────────────────────────────────────────────────────────
+add_action( 'wp_footer', 'wavesai_polishing_smart_mode', 210 );
+function wavesai_polishing_smart_mode() {
+    if ( strpos( $_SERVER['REQUEST_URI'], 'image-generator' ) === false ) return;
+    ?>
+<style id="wavesai-smart-mode-css">
+.smart-mode-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 12px 0 4px;
+}
+.smart-toggle {
+    position: relative;
+    width: 48px;
+    height: 26px;
+    cursor: pointer;
+}
+.smart-toggle input { opacity: 0; width: 0; height: 0; }
+.smart-slider {
+    position: absolute;
+    inset: 0;
+    background: rgba(51,38,40,0.2);
+    border-radius: 26px;
+    transition: .3s;
+}
+.smart-slider:before {
+    content: '';
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    width: 20px;
+    height: 20px;
+    background: #fff;
+    border-radius: 50%;
+    transition: .3s;
+}
+.smart-toggle input:checked + .smart-slider {
+    background: linear-gradient(135deg, #F81894, #9B30FF);
+}
+.smart-toggle input:checked + .smart-slider:before {
+    transform: translateX(22px);
+}
+.smart-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #332628;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.smart-badge {
+    background: linear-gradient(135deg, #F81894, #9B30FF);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    letter-spacing: 0.5px;
+}
+.smart-enhancing {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, rgba(248,24,148,0.08), rgba(155,48,255,0.08));
+    border-radius: 12px;
+    margin: 8px 0;
+    font-size: 13px;
+    color: #332628;
+}
+.smart-enhancing .spin {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(248,24,148,0.3);
+    border-top-color: #F81894;
+    border-radius: 50%;
+    animation: smartSpin 0.8s linear infinite;
+}
+@keyframes smartSpin { to { transform: rotate(360deg); } }
+.smart-enhanced-badge {
+    display: none;
+    font-size: 11px;
+    color: #9B30FF;
+    font-weight: 600;
+    margin-top: 4px;
+}
+</style>
+<script>
+(function(){
+    var tries = 0;
+    function initSmartMode() {
+        var prompt = document.getElementById('wavesai-prompt');
+        var genBtn = document.getElementById('wavesai-generate-btn');
+        if (!prompt || !genBtn) {
+            if (++tries < 20) setTimeout(initSmartMode, 500);
+            return;
+        }
+
+        // Insert Smart Mode toggle after the prompt
+        var wrap = document.createElement('div');
+        wrap.className = 'smart-mode-wrap';
+        wrap.innerHTML = '<label class="smart-toggle"><input type="checkbox" id="smart-mode-cb"><span class="smart-slider"></span></label>' +
+            '<span class="smart-label">Smart Mode <span class="smart-badge">AI</span></span>';
+        prompt.parentElement.insertBefore(wrap, prompt.nextSibling);
+
+        // Enhancing indicator
+        var enhancing = document.createElement('div');
+        enhancing.className = 'smart-enhancing';
+        enhancing.id = 'smart-enhancing';
+        enhancing.innerHTML = '<div class="spin"></div><span>AI is enhancing your prompt for better results...</span>';
+        wrap.parentElement.insertBefore(enhancing, wrap.nextSibling);
+
+        // Enhanced badge
+        var badge = document.createElement('div');
+        badge.className = 'smart-enhanced-badge';
+        badge.id = 'smart-enhanced-badge';
+        badge.textContent = 'Enhanced by Smart Mode AI';
+        prompt.parentElement.insertBefore(badge, prompt.nextSibling);
+
+        // Intercept generate button
+        var origOnclick = genBtn.getAttribute('onclick');
+        genBtn.removeAttribute('onclick');
+        genBtn.addEventListener('click', function(e) {
+            var cb = document.getElementById('smart-mode-cb');
+            if (cb && cb.checked && prompt.value.trim().length > 0) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                enhancePrompt(prompt, function() {
+                    if (origOnclick) {
+                        new Function(origOnclick)();
+                    }
+                });
+            } else {
+                if (origOnclick) {
+                    new Function(origOnclick)();
+                }
+            }
+        });
+
+        function enhancePrompt(promptEl, callback) {
+            var el = document.getElementById('smart-enhancing');
+            el.style.display = 'flex';
+            genBtn.disabled = true;
+            genBtn.style.opacity = '0.5';
+
+            var fd = new FormData();
+            fd.append('action', 'wavesai_smart_enhance');
+            fd.append('prompt', promptEl.value);
+            fd.append('mode', 'enhance');
+
+            fetch('<?php echo admin_url("admin-ajax.php"); ?>', {
+                method: 'POST',
+                body: fd
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                el.style.display = 'none';
+                genBtn.disabled = false;
+                genBtn.style.opacity = '1';
+                if (data.success && data.data && data.data.text) {
+                    promptEl.value = data.data.text;
+                    promptEl.dispatchEvent(new Event('input', {bubbles:true}));
+                    var b = document.getElementById('smart-enhanced-badge');
+                    b.style.display = 'block';
+                    setTimeout(function(){ b.style.display = 'none'; }, 5000);
+                }
+                callback();
+            })
+            .catch(function() {
+                el.style.display = 'none';
+                genBtn.disabled = false;
+                genBtn.style.opacity = '1';
+                callback();
+            });
+        }
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function(){ setTimeout(initSmartMode, 1500); });
+    } else {
+        setTimeout(initSmartMode, 1500);
+    }
+})();
+</script>
+    <?php
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 15. MOTIVATIONAL QUOTE IMAGE GENERATOR
+// ─────────────────────────────────────────────────────────────────────────────
+add_action( 'wp_footer', 'wavesai_polishing_quote_generator', 211 );
+function wavesai_polishing_quote_generator() {
+    if ( strpos( $_SERVER['REQUEST_URI'], 'image-generator' ) === false ) return;
+    ?>
+<style id="wavesai-quote-gen-css">
+#wavesai-quote-mode {
+    display: none;
+    padding: 20px 0;
+}
+#wavesai-quote-mode.active { display: block; }
+.quote-gen-card {
+    background: #332628;
+    border-radius: 16px;
+    padding: 28px;
+    color: #F3E9D0;
+}
+.quote-gen-card h3 {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 4px;
+    color: #F3E9D0;
+}
+.quote-gen-card .subtitle {
+    font-size: 13px;
+    color: rgba(243,233,208,0.6);
+    margin: 0 0 20px;
+}
+.qg-field { margin-bottom: 18px; }
+.qg-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #F3E9D0;
+    margin-bottom: 6px;
+}
+.qg-select, .qg-input {
+    width: 100%;
+    padding: 12px 16px;
+    background: rgba(243,233,208,0.1);
+    border: 1px solid rgba(243,233,208,0.15);
+    border-radius: 10px;
+    color: #F3E9D0;
+    font-size: 14px;
+    outline: none;
+    transition: border-color .2s;
+    box-sizing: border-box;
+}
+.qg-select:focus, .qg-input:focus {
+    border-color: #F81894;
+}
+.qg-select option { background: #332628; color: #F3E9D0; }
+.qg-textarea {
+    width: 100%;
+    padding: 12px 16px;
+    background: rgba(243,233,208,0.1);
+    border: 1px solid rgba(243,233,208,0.15);
+    border-radius: 10px;
+    color: #F3E9D0;
+    font-size: 14px;
+    min-height: 80px;
+    resize: vertical;
+    outline: none;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+.qg-textarea:focus { border-color: #F81894; }
+.qg-textarea::placeholder { color: rgba(243,233,208,0.4); }
+.qg-row {
+    display: flex;
+    gap: 12px;
+}
+.qg-row > * { flex: 1; }
+.qg-auto-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #F81894, #9B30FF);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 6px;
+    transition: opacity .2s;
+}
+.qg-auto-btn:hover { opacity: 0.85; }
+.qg-generate-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #F81894, #d4157e);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: opacity .2s;
+}
+.qg-generate-btn:hover { opacity: 0.9; }
+.qg-generate-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.qg-preview-area {
+    display: none;
+    margin-top: 20px;
+    text-align: center;
+}
+.qg-preview-area canvas {
+    max-width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+.qg-preview-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 14px;
+}
+.qg-dl-btn {
+    padding: 10px 24px;
+    background: #F81894;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.qg-again-btn {
+    padding: 10px 24px;
+    background: rgba(243,233,208,0.15);
+    color: #F3E9D0;
+    border: 1px solid rgba(243,233,208,0.2);
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.qg-status {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 18px;
+    background: rgba(248,24,148,0.1);
+    border-radius: 12px;
+    margin-top: 14px;
+    font-size: 13px;
+    color: #F3E9D0;
+}
+.qg-status .spin {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(248,24,148,0.3);
+    border-top-color: #F81894;
+    border-radius: 50%;
+    animation: smartSpin 0.8s linear infinite;
+    flex-shrink: 0;
+}
+.qg-font-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+}
+.qg-font-opt {
+    padding: 6px 14px;
+    background: rgba(243,233,208,0.1);
+    border: 1px solid rgba(243,233,208,0.15);
+    border-radius: 8px;
+    color: #F3E9D0;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all .2s;
+}
+.qg-font-opt.active {
+    background: #F81894;
+    border-color: #F81894;
+    color: #fff;
+}
+@media (max-width: 768px) {
+    .qg-row { flex-direction: column; gap: 0; }
+    .quote-gen-card { padding: 20px 16px; }
+}
+</style>
+<script>
+(function(){
+    var tries = 0;
+    function initQuoteGen() {
+        var modeBar = document.querySelector('.wavesai-img-mode-toggle');
+        if (!modeBar) {
+            if (++tries < 20) setTimeout(initQuoteGen, 500);
+            return;
+        }
+
+        // Add Quote Gen mode button
+        var qBtn = document.createElement('button');
+        qBtn.id = 'mode-quotegen';
+        qBtn.textContent = 'Quote Creator';
+        qBtn.style.cssText = 'padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid rgba(51,38,40,0.2);background:#F3E9D0;color:#332628;transition:all .2s;';
+        modeBar.appendChild(qBtn);
+        modeBar.style.gridTemplateColumns = '1fr 1fr 1fr';
+
+        // Create Quote Gen panel
+        var panel = document.createElement('div');
+        panel.id = 'wavesai-quote-mode';
+        panel.innerHTML = '<div class="quote-gen-card">' +
+            '<h3>Motivational Quote Creator</h3>' +
+            '<p class="subtitle">Create beautiful motivational images with AI-generated backgrounds and your quotes</p>' +
+            '<div class="qg-field"><label class="qg-label">Background Style</label>' +
+                '<select class="qg-select" id="qg-style">' +
+                    '<option value="cute-animals">Cute Animals</option>' +
+                    '<option value="nature">Nature & Landscapes</option>' +
+                    '<option value="ocean">Ocean & Beach</option>' +
+                    '<option value="cozy">Cozy & Hygge</option>' +
+                    '<option value="floral">Flowers & Roses</option>' +
+                    '<option value="abstract">Abstract & Gradient</option>' +
+                    '<option value="galaxy">Galaxy & Cosmic</option>' +
+                    '<option value="vintage">Vintage & Nostalgic</option>' +
+                '</select></div>' +
+            '<div class="qg-field"><label class="qg-label">Your Quote</label>' +
+                '<textarea class="qg-textarea" id="qg-quote" placeholder="Type your motivational quote here, or click Auto-Generate below..."></textarea>' +
+                '<button class="qg-auto-btn" id="qg-auto-btn" type="button">&#10024; Auto-Generate Quote</button></div>' +
+            '<div class="qg-field"><label class="qg-label">Text Style</label>' +
+                '<div class="qg-font-row" id="qg-font-row">' +
+                    '<button class="qg-font-opt active" data-font="elegant" type="button">Elegant</button>' +
+                    '<button class="qg-font-opt" data-font="bold" type="button">Bold</button>' +
+                    '<button class="qg-font-opt" data-font="handwritten" type="button">Handwritten</button>' +
+                    '<button class="qg-font-opt" data-font="minimal" type="button">Minimal</button>' +
+                '</div></div>' +
+            '<div class="qg-row"><div class="qg-field"><label class="qg-label">Text Color</label>' +
+                '<select class="qg-select" id="qg-text-color">' +
+                    '<option value="#FFFFFF">White</option>' +
+                    '<option value="#1a1a1a">Black</option>' +
+                    '<option value="#F3E9D0">Cream</option>' +
+                    '<option value="#F81894">Pink</option>' +
+                    '<option value="#FFD700">Gold</option>' +
+                '</select></div>' +
+            '<div class="qg-field"><label class="qg-label">Image Size</label>' +
+                '<select class="qg-select" id="qg-size">' +
+                    '<option value="1:1">Square (1:1)</option>' +
+                    '<option value="9:16">Portrait (9:16)</option>' +
+                    '<option value="16:9">Landscape (16:9)</option>' +
+                    '<option value="4:5">Instagram (4:5)</option>' +
+                '</select></div></div>' +
+            '<button class="qg-generate-btn" id="qg-generate-btn" type="button">Generate Quote Image</button>' +
+            '<div class="qg-status" id="qg-status"><div class="spin"></div><span id="qg-status-text">Generating...</span></div>' +
+            '<div class="qg-preview-area" id="qg-preview-area">' +
+                '<canvas id="qg-canvas"></canvas>' +
+                '<div class="qg-preview-actions">' +
+                    '<button class="qg-dl-btn" id="qg-download-btn" type="button">Download Image</button>' +
+                    '<button class="qg-again-btn" id="qg-again-btn" type="button">Generate Another</button>' +
+                '</div></div>' +
+        '</div>';
+
+        // Insert panel after mode bar
+        var toolApp = document.getElementById('wavesai-tool-app');
+        if (toolApp) {
+            toolApp.appendChild(panel);
+        }
+
+        // Load Google Fonts for text styles
+        var link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Caveat:wght@600;700&family=Montserrat:wght@800;900&family=Raleway:wght@300;400&display=swap';
+        document.head.appendChild(link);
+
+        // Mode switching
+        var allModes = ['mode-image','mode-pstudio','mode-img2prompt','mode-quotegen'];
+        var allPanels = {
+            'mode-image': null,
+            'mode-pstudio': 'wavesai-pstudio-mode',
+            'mode-img2prompt': 'wavesai-img2prompt-mode',
+            'mode-quotegen': 'wavesai-quote-mode'
+        };
+        qBtn.addEventListener('click', function() {
+            allModes.forEach(function(m) {
+                var btn = document.getElementById(m);
+                if (btn) {
+                    btn.style.background = m === 'mode-quotegen' ? '#F81894' : '#F3E9D0';
+                    btn.style.color = m === 'mode-quotegen' ? '#fff' : '#332628';
+                    btn.style.borderColor = m === 'mode-quotegen' ? '#F81894' : 'rgba(51,38,40,0.2)';
+                }
+            });
+            // Hide all panels
+            var mainForm = document.querySelector('.wavesai-step-content');
+            if (mainForm) mainForm.style.display = 'none';
+            var pstudio = document.getElementById('wavesai-pstudio-mode');
+            if (pstudio) pstudio.style.display = 'none';
+            var img2p = document.getElementById('wavesai-img2prompt-mode');
+            if (img2p) img2p.style.display = 'none';
+            var promptgen = document.getElementById('wavesai-promptgen-mode');
+            if (promptgen) promptgen.style.display = 'none';
+            var productAd = document.getElementById('wavesai-product-ad-mode');
+            if (productAd) productAd.style.display = 'none';
+            var refMode = document.querySelector('[id*="reference-mode"], [id*="dual-mode"]');
+            document.querySelectorAll('[id$="-mode"]').forEach(function(el) {
+                if (el.id !== 'wavesai-quote-mode') el.style.display = 'none';
+            });
+            panel.classList.add('active');
+            panel.style.display = 'block';
+        });
+
+        // Re-show main form when other mode buttons clicked
+        ['mode-image'].forEach(function(mid) {
+            var b = document.getElementById(mid);
+            if (b) {
+                b.addEventListener('click', function() {
+                    panel.classList.remove('active');
+                    panel.style.display = 'none';
+                    qBtn.style.background = '#F3E9D0';
+                    qBtn.style.color = '#332628';
+                    qBtn.style.borderColor = 'rgba(51,38,40,0.2)';
+                });
+            }
+        });
+
+        // Font style selection
+        document.getElementById('qg-font-row').addEventListener('click', function(e) {
+            var opt = e.target.closest('.qg-font-opt');
+            if (!opt) return;
+            this.querySelectorAll('.qg-font-opt').forEach(function(o){ o.classList.remove('active'); });
+            opt.classList.add('active');
+        });
+
+        // Auto-generate quote
+        document.getElementById('qg-auto-btn').addEventListener('click', function() {
+            var btn = this;
+            var style = document.getElementById('qg-style').value;
+            btn.disabled = true;
+            btn.textContent = 'Generating...';
+            var fd = new FormData();
+            fd.append('action', 'wavesai_smart_enhance');
+            fd.append('mode', 'quote');
+            fd.append('style', style);
+            fetch('<?php echo admin_url("admin-ajax.php"); ?>', { method: 'POST', body: fd })
+            .then(function(r){ return r.json(); })
+            .then(function(data){
+                btn.disabled = false;
+                btn.innerHTML = '&#10024; Auto-Generate Quote';
+                if (data.success) {
+                    document.getElementById('qg-quote').value = data.data.text;
+                }
+            }).catch(function(){
+                btn.disabled = false;
+                btn.innerHTML = '&#10024; Auto-Generate Quote';
+            });
+        });
+
+        // Generate quote image
+        document.getElementById('qg-generate-btn').addEventListener('click', function() {
+            var quote = document.getElementById('qg-quote').value.trim();
+            if (!quote) { alert('Please enter a quote or auto-generate one first.'); return; }
+            generateQuoteImage(quote);
+        });
+
+        function generateQuoteImage(quote) {
+            var genBtn = document.getElementById('qg-generate-btn');
+            var status = document.getElementById('qg-status');
+            var statusText = document.getElementById('qg-status-text');
+            var preview = document.getElementById('qg-preview-area');
+            genBtn.disabled = true;
+            status.style.display = 'flex';
+            preview.style.display = 'none';
+            statusText.textContent = 'AI is creating your background...';
+
+            var style = document.getElementById('qg-style').value;
+            var size = document.getElementById('qg-size').value;
+
+            // Step 1: Get AI prompt for background
+            var fd = new FormData();
+            fd.append('action', 'wavesai_smart_enhance');
+            fd.append('mode', 'quote_prompt');
+            fd.append('style', style);
+            fetch('<?php echo admin_url("admin-ajax.php"); ?>', { method: 'POST', body: fd })
+            .then(function(r){ return r.json(); })
+            .then(function(data) {
+                if (!data.success) throw new Error('Failed to generate prompt');
+                var imgPrompt = data.data.text;
+                statusText.textContent = 'Generating background image...';
+
+                // Step 2: Use existing image generator to create background
+                // Fill the main prompt and trigger generation via the existing API
+                var mainPrompt = document.getElementById('wavesai-prompt');
+                var mainSize = document.getElementById('wavesai-size');
+                if (mainPrompt) mainPrompt.value = imgPrompt + ', no text, no words, no letters, no writing, clean background suitable for text overlay';
+                if (mainSize) {
+                    // Set size
+                    for (var i = 0; i < mainSize.options.length; i++) {
+                        if (mainSize.options[i].value === size || mainSize.options[i].textContent.includes(size)) {
+                            mainSize.selectedIndex = i;
+                            break;
+                        }
+                    }
+                }
+                // Set count to 1
+                var mainCount = document.getElementById('wavesai-count');
+                if (mainCount) mainCount.selectedIndex = 0;
+
+                // Trigger generation and watch for result
+                if (typeof wavesaiGenerateImage === 'function') {
+                    wavesaiGenerateImage();
+                    watchForResult(quote);
+                } else {
+                    statusText.textContent = 'Error: Image generator not available';
+                    genBtn.disabled = false;
+                }
+            })
+            .catch(function(err) {
+                statusText.textContent = 'Error: ' + err.message;
+                setTimeout(function(){ status.style.display = 'none'; genBtn.disabled = false; }, 3000);
+            });
+        }
+
+        function watchForResult(quote) {
+            var statusText = document.getElementById('qg-status-text');
+            var checks = 0;
+            var maxChecks = 60;
+            var interval = setInterval(function() {
+                checks++;
+                if (checks > maxChecks) {
+                    clearInterval(interval);
+                    statusText.textContent = 'Timed out waiting for image. Please try again.';
+                    document.getElementById('qg-generate-btn').disabled = false;
+                    return;
+                }
+                // Look for generated image
+                var imgs = document.querySelectorAll('.wavesai-generated-img, .wavesai-result img, #wavesai-result img, .wavesai-gallery img');
+                var latestImg = null;
+                imgs.forEach(function(img) {
+                    if (img.src && img.src.startsWith('http') && img.naturalWidth > 0) {
+                        latestImg = img;
+                    }
+                });
+                if (!latestImg) {
+                    // Also check for images in the result area
+                    var resultArea = document.querySelector('.wavesai-results, #wavesai-results, .wavesai-gallery');
+                    if (resultArea) {
+                        var rImgs = resultArea.querySelectorAll('img');
+                        rImgs.forEach(function(img) {
+                            if (img.src && img.src.startsWith('http') && img.naturalWidth > 0) {
+                                latestImg = img;
+                            }
+                        });
+                    }
+                }
+                if (latestImg && latestImg.complete && latestImg.naturalWidth > 100) {
+                    clearInterval(interval);
+                    statusText.textContent = 'Composing your quote image...';
+                    setTimeout(function() { composeQuoteImage(latestImg.src, quote); }, 500);
+                }
+            }, 2000);
+        }
+
+        function composeQuoteImage(bgUrl, quote) {
+            var canvas = document.getElementById('qg-canvas');
+            var ctx = canvas.getContext('2d');
+            var preview = document.getElementById('qg-preview-area');
+            var status = document.getElementById('qg-status');
+            var genBtn = document.getElementById('qg-generate-btn');
+
+            var img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = function() {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+
+                // Semi-transparent overlay for text readability
+                ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Get text settings
+                var textColor = document.getElementById('qg-text-color').value;
+                var fontStyle = document.querySelector('.qg-font-opt.active');
+                var fontKey = fontStyle ? fontStyle.dataset.font : 'elegant';
+
+                var fontMap = {
+                    'elegant': '"Playfair Display", Georgia, serif',
+                    'bold': '"Montserrat", Arial, sans-serif',
+                    'handwritten': '"Caveat", cursive',
+                    'minimal': '"Raleway", Helvetica, sans-serif'
+                };
+                var fontWeightMap = {
+                    'elegant': '700',
+                    'bold': '900',
+                    'handwritten': '700',
+                    'minimal': '300'
+                };
+
+                var fontFamily = fontMap[fontKey] || fontMap['elegant'];
+                var fontWeight = fontWeightMap[fontKey] || '700';
+
+                // Calculate font size based on canvas size and text length
+                var baseFontSize = Math.min(canvas.width, canvas.height) * 0.06;
+                if (quote.length > 100) baseFontSize *= 0.75;
+                if (quote.length > 150) baseFontSize *= 0.8;
+                baseFontSize = Math.max(baseFontSize, 24);
+                baseFontSize = Math.min(baseFontSize, 72);
+
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                // Word wrap
+                ctx.font = fontWeight + ' ' + baseFontSize + 'px ' + fontFamily;
+                var maxWidth = canvas.width * 0.75;
+                var lines = wrapText(ctx, quote, maxWidth);
+                var lineHeight = baseFontSize * 1.4;
+                var totalHeight = lines.length * lineHeight;
+                var startY = (canvas.height - totalHeight) / 2 + lineHeight / 2;
+
+                // Draw text shadow
+                ctx.shadowColor = 'rgba(0,0,0,0.6)';
+                ctx.shadowBlur = 15;
+                ctx.shadowOffsetX = 2;
+                ctx.shadowOffsetY = 2;
+                ctx.fillStyle = textColor;
+
+                lines.forEach(function(line, i) {
+                    ctx.fillText(line, canvas.width / 2, startY + i * lineHeight);
+                });
+
+                // Reset shadow
+                ctx.shadowColor = 'transparent';
+                ctx.shadowBlur = 0;
+
+                // Add subtle heart or decorative element below text
+                if (fontKey === 'elegant' || fontKey === 'handwritten') {
+                    ctx.font = Math.round(baseFontSize * 0.5) + 'px serif';
+                    ctx.fillStyle = textColor;
+                    ctx.globalAlpha = 0.7;
+                    ctx.fillText('♥', canvas.width / 2, startY + lines.length * lineHeight + lineHeight * 0.4);
+                    ctx.globalAlpha = 1;
+                }
+
+                preview.style.display = 'block';
+                status.style.display = 'none';
+                genBtn.disabled = false;
+
+                // Switch back to quote gen panel view
+                var qPanel = document.getElementById('wavesai-quote-mode');
+                if (qPanel) {
+                    qPanel.style.display = 'block';
+                    qPanel.classList.add('active');
+                }
+            };
+            img.onerror = function() {
+                // If CORS fails, try drawing without crossOrigin
+                var img2 = new Image();
+                img2.onload = function() {
+                    canvas.width = img2.width;
+                    canvas.height = img2.height;
+                    ctx.drawImage(img2, 0, 0);
+                    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    var textColor = document.getElementById('qg-text-color').value;
+                    var fontStyle = document.querySelector('.qg-font-opt.active');
+                    var fontKey = fontStyle ? fontStyle.dataset.font : 'elegant';
+                    var fontMap = {
+                        'elegant': '"Playfair Display", Georgia, serif',
+                        'bold': '"Montserrat", Arial, sans-serif',
+                        'handwritten': '"Caveat", cursive',
+                        'minimal': '"Raleway", Helvetica, sans-serif'
+                    };
+                    var fontWeight = fontKey === 'bold' ? '900' : fontKey === 'minimal' ? '300' : '700';
+                    var fontFamily = fontMap[fontKey] || fontMap['elegant'];
+                    var baseFontSize = Math.min(canvas.width, canvas.height) * 0.06;
+                    if (quote.length > 100) baseFontSize *= 0.75;
+                    baseFontSize = Math.max(baseFontSize, 24);
+                    baseFontSize = Math.min(baseFontSize, 72);
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.font = fontWeight + ' ' + baseFontSize + 'px ' + fontFamily;
+                    var maxWidth = canvas.width * 0.75;
+                    var lines = wrapText(ctx, quote, maxWidth);
+                    var lineHeight = baseFontSize * 1.4;
+                    var startY = (canvas.height - lines.length * lineHeight) / 2 + lineHeight / 2;
+                    ctx.shadowColor = 'rgba(0,0,0,0.6)';
+                    ctx.shadowBlur = 15;
+                    ctx.fillStyle = textColor;
+                    lines.forEach(function(line, i) {
+                        ctx.fillText(line, canvas.width / 2, startY + i * lineHeight);
+                    });
+                    preview.style.display = 'block';
+                    status.style.display = 'none';
+                    genBtn.disabled = false;
+                };
+                img2.src = bgUrl;
+            };
+            img.src = bgUrl;
+        }
+
+        function wrapText(ctx, text, maxWidth) {
+            var words = text.split(' ');
+            var lines = [];
+            var currentLine = '';
+            words.forEach(function(word) {
+                var testLine = currentLine ? currentLine + ' ' + word : word;
+                if (ctx.measureText(testLine).width > maxWidth && currentLine) {
+                    lines.push(currentLine);
+                    currentLine = word;
+                } else {
+                    currentLine = testLine;
+                }
+            });
+            if (currentLine) lines.push(currentLine);
+            return lines;
+        }
+
+        // Download
+        document.getElementById('qg-download-btn').addEventListener('click', function() {
+            var canvas = document.getElementById('qg-canvas');
+            try {
+                var link = document.createElement('a');
+                link.download = 'wavesai-quote-' + Date.now() + '.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } catch(e) {
+                alert('Download not available due to image security restrictions. Try right-clicking the image to save it.');
+            }
+        });
+
+        // Generate another
+        document.getElementById('qg-again-btn').addEventListener('click', function() {
+            document.getElementById('qg-preview-area').style.display = 'none';
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function(){ setTimeout(initQuoteGen, 2000); });
+    } else {
+        setTimeout(initQuoteGen, 2000);
+    }
+})();
+</script>
+    <?php
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // 13. TERMS & CONDITIONS - PRICE/CREDIT CHANGE CLAUSE
 // ─────────────────────────────────────────────────────────────────────────────
 add_action( 'wp_footer', 'wavesai_polishing_terms_clause', 210 );
