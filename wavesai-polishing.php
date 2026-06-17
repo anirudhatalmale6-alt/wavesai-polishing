@@ -792,3 +792,188 @@ function wavesai_polishing_logo() {
 </script>
     <?php
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 11. CONTENT CALENDAR PERSISTENCE + SAVED CALENDARS
+// ─────────────────────────────────────────────────────────────────────────────
+add_action( 'wp_footer', 'wavesai_polishing_calendar_persistence', 208 );
+function wavesai_polishing_calendar_persistence() {
+    if ( ! is_user_logged_in() ) return;
+    ?>
+<script>
+(function(){
+    var KEY = 'wavesai_saved_calendars';
+
+    function getSavedCalendars(){
+        try { return JSON.parse(localStorage.getItem(KEY)) || []; }
+        catch(e){ return []; }
+    }
+
+    function saveCalendar(days){
+        var list = getSavedCalendars();
+        list.unshift({
+            date: new Date().toISOString(),
+            label: new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'}),
+            days: days
+        });
+        if(list.length > 10) list = list.slice(0,10);
+        localStorage.setItem(KEY, JSON.stringify(list));
+    }
+
+    // Override vaRenderCalendar to also persist
+    var origRender = window.vaRenderCalendar || null;
+    if(typeof vaRenderCalendar === 'undefined'){
+        // Wait for original to be defined, then patch
+        var patchInterval = setInterval(function(){
+            if(typeof vaRenderCalendar !== 'undefined' || document.getElementById('va-cal-grid')){
+                clearInterval(patchInterval);
+                doPatch();
+            }
+        }, 500);
+        setTimeout(function(){ clearInterval(patchInterval); }, 15000);
+    } else {
+        doPatch();
+    }
+
+    function doPatch(){
+        // Intercept the fetch response to capture calendar data
+        var origFetch = window.fetch;
+        window.fetch = function(){
+            var args = arguments;
+            var url = typeof args[0] === 'string' ? args[0] : (args[0]||{}).url || '';
+            if(url.indexOf('content-calendar') !== -1){
+                return origFetch.apply(this, args).then(function(resp){
+                    var cloned = resp.clone();
+                    cloned.json().then(function(d){
+                        if(d.calendar && d.calendar.days){
+                            saveCalendar(d.calendar.days);
+                            renderSavedList();
+                        }
+                    }).catch(function(){});
+                    return resp;
+                });
+            }
+            return origFetch.apply(this, args);
+        };
+
+        // Add "Saved Calendars" section below the calendar grid
+        var calPanel = document.getElementById('va-panel-calendar');
+        if(!calPanel) return;
+
+        var savedDiv = document.createElement('div');
+        savedDiv.id = 'va-saved-calendars';
+        savedDiv.style.cssText = 'margin-top:24px;';
+        calPanel.appendChild(savedDiv);
+
+        renderSavedList();
+        loadLastCalendar();
+    }
+
+    function renderSavedList(){
+        var savedDiv = document.getElementById('va-saved-calendars');
+        if(!savedDiv) return;
+        var list = getSavedCalendars();
+        if(!list.length){
+            savedDiv.innerHTML = '';
+            return;
+        }
+        var html = '<div style="background:linear-gradient(135deg,rgba(248,24,148,0.08),rgba(45,90,61,0.05));border:1px solid rgba(248,24,148,0.15);border-radius:16px;padding:24px;margin-top:12px;">' +
+            '<h4 style="color:#332628;font-size:16px;font-weight:700;margin:0 0 16px;display:flex;align-items:center;gap:8px;">Your Saved Calendars <span style="background:rgba(248,24,148,0.15);color:#F81894;font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px;">' + list.length + ' saved</span></h4>';
+        list.forEach(function(cal, idx){
+            html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#F3E9D0;border:1px solid rgba(51,38,40,0.08);border-radius:10px;margin-bottom:8px;">' +
+                '<div><span style="color:#332628;font-size:14px;font-weight:600;">' + cal.label + '</span>' +
+                '<span style="color:rgba(51,38,40,0.3);font-size:11px;margin-left:8px;">' + cal.days.length + ' days</span></div>' +
+                '<div style="display:flex;gap:6px;">' +
+                '<button onclick="wavesaiLoadSavedCal('+idx+')" style="background:rgba(248,24,148,0.1);color:#F81894;border:1px solid rgba(248,24,148,0.2);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:11px;font-weight:600;font-family:inherit;">View</button>' +
+                '<button onclick="wavesaiDownloadSavedCal('+idx+')" style="background:rgba(248,24,148,0.1);color:#F81894;border:1px solid rgba(248,24,148,0.2);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:11px;font-weight:600;font-family:inherit;">Download</button>' +
+                '<button onclick="wavesaiDeleteSavedCal('+idx+')" style="background:rgba(231,76,60,0.1);color:#e74c3c;border:1px solid rgba(231,76,60,0.2);padding:6px 10px;border-radius:8px;cursor:pointer;font-size:11px;font-family:inherit;">X</button>' +
+                '</div></div>';
+        });
+        html += '</div>';
+        savedDiv.innerHTML = html;
+    }
+
+    function loadLastCalendar(){
+        var list = getSavedCalendars();
+        var grid = document.getElementById('va-cal-grid');
+        if(!list.length || !grid || grid.children.length > 0) return;
+        // Auto-load the most recent saved calendar
+        if(typeof vaRenderCalendar === 'function'){
+            vaRenderCalendar(list[0].days);
+        } else {
+            // Render manually using the same format
+            renderCalendarDays(grid, list[0].days);
+        }
+    }
+
+    function renderCalendarDays(grid, days){
+        var dayColors = { Monday:'#4a9eff', Tuesday:'#ff6b6b', Wednesday:'#ffd93d', Thursday:'#6bcb77', Friday:'#ff8a5c', Saturday:'#a78bfa', Sunday:'#f472b6' };
+        var html = '';
+        days.forEach(function(d){
+            var col = dayColors[d.day] || '#F81894';
+            html += '<div style="background:#F3E9D0;border:1px solid rgba(51,38,40,0.1);border-radius:14px;padding:20px;border-left:4px solid '+col+';">' +
+                '<div style="margin-bottom:8px;"><strong style="color:'+col+';font-size:14px;">'+(d.day||'')+'</strong>' +
+                '<span style="color:rgba(51,38,40,0.3);font-size:11px;margin-left:8px;">'+(d.best_time||'')+'</span>' +
+                (d.content_type ? '<span style="background:rgba(248,24,148,0.1);color:#F81894;font-size:10px;font-weight:600;padding:2px 8px;border-radius:6px;margin-left:6px;">'+d.content_type+'</span>' : '') +
+                '</div>' +
+                '<div style="margin-bottom:8px;"><span style="color:#F81894;font-size:11px;font-weight:600;text-transform:uppercase;">Topic</span><p style="color:#332628;font-size:14px;font-weight:600;margin:3px 0 0;line-height:1.4;">'+(d.topic||'')+'</p></div>' +
+                '<div style="margin-bottom:8px;"><span style="color:#F81894;font-size:11px;font-weight:600;text-transform:uppercase;">Hook</span><p style="color:rgba(51,38,40,0.75);font-size:14px;margin:3px 0 0;line-height:1.5;font-weight:700;">"'+(d.hook||'')+'"</p></div>' +
+                (d.script ? '<div style="margin-bottom:8px;"><span style="color:#F81894;font-size:11px;font-weight:600;text-transform:uppercase;">Script</span><p style="color:rgba(51,38,40,0.6);font-size:12px;margin:3px 0 0;line-height:1.7;white-space:pre-line;">'+((d.script||'').replace(/</g,'&lt;'))+'</p></div>' : '') +
+                '<div style="margin-bottom:8px;"><span style="color:#F81894;font-size:11px;font-weight:600;text-transform:uppercase;">Caption</span><p style="color:rgba(51,38,40,0.5);font-size:12px;margin:3px 0 0;line-height:1.6;">'+((d.caption||'').replace(/</g,'&lt;'))+'</p></div>' +
+                '<div><span style="color:#F81894;font-size:11px;font-weight:600;text-transform:uppercase;">Hashtags</span><p style="color:rgba(248,24,148,0.7);font-size:11px;margin:3px 0 0;">'+(d.hashtags||'')+'</p></div>' +
+                '</div>';
+        });
+        grid.innerHTML = html;
+        var lastEl = document.getElementById('va-cal-last');
+        if(lastEl) lastEl.style.display = 'block';
+    }
+
+    window.wavesaiLoadSavedCal = function(idx){
+        var list = getSavedCalendars();
+        if(!list[idx]) return;
+        var grid = document.getElementById('va-cal-grid');
+        if(!grid) return;
+        if(typeof vaRenderCalendar === 'function'){
+            vaRenderCalendar(list[idx].days);
+        } else {
+            renderCalendarDays(grid, list[idx].days);
+        }
+        var dateEl = document.getElementById('va-cal-date');
+        if(dateEl) dateEl.textContent = 'Saved: ' + list[idx].label;
+        // Make sure calendar panel is visible
+        if(typeof vaTab === 'function') vaTab('calendar');
+    };
+
+    window.wavesaiDownloadSavedCal = function(idx){
+        var list = getSavedCalendars();
+        if(!list[idx]) return;
+        var text = 'WEEKLY CONTENT CALENDAR\nGenerated by WavesAI Studio\n' + list[idx].label + '\n\n';
+        list[idx].days.forEach(function(d){
+            text += '=== ' + (d.day||'') + ' ===\n';
+            text += 'Best Time: ' + (d.best_time||'') + '\n';
+            text += 'Content Type: ' + (d.content_type||'') + '\n';
+            text += 'Topic: ' + (d.topic||'') + '\n';
+            text += 'Hook: ' + (d.hook||'') + '\n';
+            if(d.script) text += 'Script: ' + d.script + '\n';
+            text += 'Caption: ' + (d.caption||'') + '\n';
+            text += 'Hashtags: ' + (d.hashtags||'') + '\n';
+            if(d.video_prompt) text += 'Video Prompt: ' + d.video_prompt + '\n';
+            text += '\n';
+        });
+        var blob = new Blob([text], {type:'text/plain'});
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'content-calendar-' + list[idx].label.replace(/[^a-zA-Z0-9]/g,'-') + '.txt';
+        a.click();
+    };
+
+    window.wavesaiDeleteSavedCal = function(idx){
+        var list = getSavedCalendars();
+        list.splice(idx, 1);
+        localStorage.setItem(KEY, JSON.stringify(list));
+        renderSavedList();
+    };
+})();
+</script>
+    <?php
+}
