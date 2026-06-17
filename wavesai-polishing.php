@@ -86,6 +86,29 @@ function wavesai_polishing_css() {
     border-color: rgba(51,38,40,0.2) !important;
     color: #332628 !important;
 }
+
+/* ── My Generations heading visible (brown on cream) ── */
+.wavesai-section-title {
+    color: #332628 !important;
+}
+
+/* ── Hide bug report widget ── */
+#wavesai-report-widget {
+    display: none !important;
+}
+
+/* ── Un-hide Video Studio from mobile menu ── */
+@media (max-width: 921px) {
+    .ast-mobile-header-content li:has(a[href*="/video-studio/"]) {
+        display: block !important;
+    }
+}
+
+/* ── Force-hide Tools from ALL menus (both Astra + WP pages menus) ── */
+li:has(> a[href$="/tools/"]) { display: none !important; }
+li:has(> a[href="/tools/"]) { display: none !important; }
+li.page_item_has_children:has(> a[href*="/tools/"]) { display: none !important; }
+li.menu-item-has-children:has(> a[href*="/tools/"]):not(.sub-menu li) { display: none !important; }
 </style>
     <?php
 }
@@ -113,48 +136,42 @@ function wavesai_polishing_menu_js() {
 (function(){
     setTimeout(function(){
 
-        // Hide any remaining Tools menu items
-        document.querySelectorAll('.main-header-menu .menu-item > a, .main-header-menu .menu-item > .menu-link').forEach(function(a){
-            if(a.textContent.trim().toLowerCase() === 'tools') {
-                a.closest('.menu-item').style.display = 'none';
+        // Hide Tools from ALL menus (both Astra header + WP pages menus)
+        document.querySelectorAll('li').forEach(function(li){
+            var a = li.querySelector(':scope > a, :scope > .menu-link');
+            if(!a) return;
+            var text = a.textContent.trim().toLowerCase();
+            var href = (a.getAttribute('href') || '').toLowerCase();
+            // Hide Tools parent items
+            if(text === 'tools' || (href.match(/\/tools\/?$/) && li.querySelector('ul'))) {
+                li.style.display = 'none';
             }
         });
 
-        // Deduplicate mobile menu items (Dashboard, Top Up Credits appearing twice)
-        var seenTexts = {};
-        document.querySelectorAll(
-            '.ast-mobile-popup-content .main-header-menu .menu-item, ' +
-            '.ast-mobile-header-content .main-header-menu .menu-item'
-        ).forEach(function(item){
-            var link = item.querySelector('a, .menu-link');
-            if(!link) return;
-            var text = link.textContent.trim().toLowerCase();
-            if(seenTexts[text]) {
-                item.style.display = 'none';
-            } else {
-                seenTexts[text] = true;
-            }
-        });
-
-        // Add Blog to mobile menu if missing
-        var mobileMenus = document.querySelectorAll(
-            '.ast-mobile-popup-content .main-header-menu, ' +
-            '.ast-mobile-header-content .main-header-menu'
-        );
-        mobileMenus.forEach(function(menu){
-            var links = menu.querySelectorAll('a, .menu-link');
-            var hasBlog = false;
-            links.forEach(function(a){
-                if(a.textContent.trim().toLowerCase() === 'blog') hasBlog = true;
+        // Deduplicate mobile menu items within each menu separately
+        document.querySelectorAll('.ast-mobile-popup-content .main-header-menu, .ast-mobile-header-content .main-header-menu').forEach(function(menu){
+            var seen = {};
+            menu.querySelectorAll(':scope > li').forEach(function(item){
+                var link = item.querySelector(':scope > a, :scope > .menu-link');
+                if(!link) return;
+                var text = link.textContent.trim().toLowerCase();
+                if(seen[text]) {
+                    item.style.display = 'none';
+                } else {
+                    seen[text] = true;
+                }
             });
-            if(!hasBlog) {
-                var blogItem = document.createElement('li');
-                blogItem.className = 'menu-item';
-                var blogLink = document.createElement('a');
-                blogLink.href = '/blog/';
-                blogLink.textContent = 'Blog';
-                blogItem.appendChild(blogLink);
-                menu.appendChild(blogItem);
+        });
+
+        // Show Blog items that are hidden in menus
+        document.querySelectorAll('li').forEach(function(li){
+            var a = li.querySelector(':scope > a');
+            if(!a) return;
+            if(a.textContent.trim().toLowerCase() === 'blog' && window.getComputedStyle(li).display === 'none') {
+                // Only show in top-level menus, not submenus
+                var parent = li.parentElement;
+                if(parent && (parent.classList.contains('sub-menu') || parent.classList.contains('children'))) return;
+                li.style.display = '';
             }
         });
 
@@ -177,7 +194,7 @@ function wavesai_polishing_prompts_js() {
 <script id="wavesai-polishing-prompts-js">
 (function(){
     var checkInterval = setInterval(function(){
-        if(typeof videoPrompts !== 'undefined') {
+        if(document.getElementById('pl-grid') && document.querySelectorAll('.pl-card').length > 0) {
             clearInterval(checkInterval);
             var horseAndBirdPrompts = [
                 /* ─── HORSES (50) ─── */
@@ -284,18 +301,149 @@ function wavesai_polishing_prompts_js() {
                 {cat:'Birds',text:'Ultra photorealistic, real photograph. A snowy owl female lands on a frozen tundra lake near Churchill, Manitoba, the landing gear of her taloned feet outstretched, wings cupped, a blizzard beginning behind her. Shot at 1/1000s on a 800mm f/6.3. Arctic drama grade, white owl against white storm. 8K resolution, ultra-detailed, professional quality.'},
                 {cat:'Birds',text:'Ultra photorealistic, real photograph. A martial eagle, Africa\'s most powerful raptor, tears at a Vervet monkey on a Kruger Park termite mound, talons the size of a man\'s hand gleaming, other monkeys watching from a safe tree. Shot on a 600mm at f/5.6 in morning light. Raw African nature grade, fierce power and savanna gold. 8K resolution, ultra-detailed, professional quality.'}
             ];
-            horseAndBirdPrompts.forEach(function(p){ videoPrompts.push(p); });
-            if(typeof plRender === 'function') plRender();
+            // Inject into the prompt library grid directly
+            var grid = document.getElementById('pl-grid');
+            var filterDiv = document.getElementById('pl-filters');
+            if (grid && filterDiv) {
+                // Store prompts globally for filtering
+                window._extraPrompts = horseAndBirdPrompts;
+
+                // Add category buttons
+                var existingCats = filterDiv.querySelectorAll('.pl-cat');
+                var catTexts = [];
+                existingCats.forEach(function(c){ catTexts.push(c.textContent.trim()); });
+
+                ['Horses','Birds'].forEach(function(cat) {
+                    if (catTexts.indexOf(cat) === -1) {
+                        var btn = document.createElement('div');
+                        btn.className = 'pl-cat';
+                        btn.textContent = cat;
+                        btn.style.cssText = 'display:inline-block !important;width:auto !important;';
+                        btn.onclick = function() {
+                            // Show only this category
+                            document.querySelectorAll('.pl-cat').forEach(function(c){ c.classList.remove('active'); });
+                            btn.classList.add('active');
+                            // Hide main grid cards
+                            grid.querySelectorAll('.pl-card:not(.extra-prompt)').forEach(function(c){ c.style.display = 'none'; });
+                            // Show matching extra cards, hide non-matching
+                            grid.querySelectorAll('.pl-card.extra-prompt').forEach(function(c){
+                                c.style.display = c.dataset.cat === cat ? '' : 'none';
+                            });
+                            var countEl = document.getElementById('pl-count');
+                            if (countEl) countEl.textContent = window._extraPrompts.filter(function(p){return p.cat===cat;}).length + ' prompts';
+                        };
+                        filterDiv.appendChild(btn);
+                    }
+                });
+
+                // Override All button to also show extra prompts
+                var allBtn = filterDiv.querySelector('.pl-cat.active');
+                if (allBtn) {
+                    var origClick = allBtn.onclick;
+                    allBtn.onclick = function() {
+                        if (origClick) origClick.call(this);
+                        if (typeof window.plCat === 'function') window.plCat('All');
+                        grid.querySelectorAll('.pl-card.extra-prompt').forEach(function(c){ c.style.display = ''; });
+                    };
+                }
+
+                // Add prompt cards to grid
+                var base = window.location.origin;
+                horseAndBirdPrompts.forEach(function(p, i) {
+                    var card = document.createElement('div');
+                    card.className = 'pl-card extra-prompt';
+                    card.dataset.cat = p.cat;
+                    card.innerHTML = '<span class="pl-card-tag" style="background:rgba(248,24,148,0.15);color:#F81894;">' + p.cat.toUpperCase() + '</span>'
+                        + '<p id="pl-extra-' + i + '">' + p.text.replace(/</g,'&lt;') + '</p>'
+                        + '<button class="pl-copy" onclick="var t=document.getElementById(\'pl-extra-' + i + '\').textContent;navigator.clipboard.writeText(t);this.textContent=\'Copied!\';setTimeout(function(){this.textContent=\'Copy\';}.bind(this),1500);">Copy</button>'
+                        + ' <a class="pl-use" href="' + base + '/tools/image-generator/" onclick="navigator.clipboard.writeText(document.getElementById(\'pl-extra-' + i + '\').textContent)">Use in Image Generator &rarr;</a>';
+                    grid.appendChild(card);
+                });
+
+                // Update count
+                var countEl = document.getElementById('pl-count');
+                if (countEl) {
+                    var current = parseInt(countEl.textContent) || 0;
+                    countEl.textContent = (current + horseAndBirdPrompts.length) + ' prompts';
+                }
+            }
         }
-    }, 500);
-    setTimeout(function(){ clearInterval(checkInterval); }, 10000);
+    }, 1000);
+    setTimeout(function(){ clearInterval(checkInterval); }, 15000);
 })();
 </script>
     <?php
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 5. LOGO SWAP
+// 5. CHAT ASSISTANT FIX (remove "talking pets", update to agents)
+// ─────────────────────────────────────────────────────────────────────────────
+add_action( 'wp_footer', 'wavesai_polishing_chatbot_fix', 203 );
+function wavesai_polishing_chatbot_fix() {
+    ?>
+<script id="wavesai-polishing-chatbot-fix">
+(function(){
+    setTimeout(function(){
+        // Fix chatbot intro message
+        var botMsgs = document.querySelectorAll('#chatbot-messages .chatbot-msg.bot');
+        if(botMsgs.length > 0){
+            botMsgs[0].textContent = 'Hi there! I\'m your WavesAI assistant. I can help you with our AI agents, image generation, video creation, website building, business coaching, and more. Ask me anything!';
+        }
+        // Fix suggestion buttons
+        var suggestions = document.querySelectorAll('#chatbot-suggestions button');
+        var newSuggestions = [
+            'What AI agents do you have?',
+            'How does Video Studio work?',
+            'How do I get started?',
+            'What are the pricing plans?'
+        ];
+        suggestions.forEach(function(btn, i){
+            if(newSuggestions[i]) btn.textContent = newSuggestions[i];
+        });
+    }, 500);
+})();
+</script>
+    <?php
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 6. ADD VIDEO STUDIO CARD TO DASHBOARD
+// ─────────────────────────────────────────────────────────────────────────────
+add_action( 'wp_footer', 'wavesai_polishing_video_studio_card', 204 );
+function wavesai_polishing_video_studio_card() {
+    $vs_url = esc_url( home_url('/tools/video-studio/') );
+    ?>
+<script id="wavesai-polishing-video-studio">
+(function(){
+    setTimeout(function(){
+        var grid = document.querySelector('#wavesai-dashboard .wavesai-tools-grid');
+        if(!grid) return;
+        // Check if Video Studio card already exists
+        var exists = false;
+        grid.querySelectorAll('a').forEach(function(a){
+            if(a.href && a.href.indexOf('video-studio') !== -1) exists = true;
+        });
+        if(exists) return;
+        var card = document.createElement('a');
+        card.href = '<?php echo $vs_url; ?>';
+        card.className = 'wavesai-tool-card-v2';
+        card.style.cssText = 'background:#332628 !important;';
+        card.innerHTML = '<span class="tool-icon">&#127916;</span><div><h4>Video Studio</h4><p class="tool-desc">Create AI videos with Higgsfield, video ads, and storyboards.</p><span class="tool-cost">&#9889; 10 credits</span></div>';
+        // Insert after AI Chatbot (6th card) or at the end
+        var cards = grid.querySelectorAll('.wavesai-tool-card-v2');
+        if(cards.length >= 5){
+            cards[4].parentNode.insertBefore(card, cards[4].nextSibling);
+        } else {
+            grid.appendChild(card);
+        }
+    }, 1000);
+})();
+</script>
+    <?php
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 7. LOGO SWAP
 // ─────────────────────────────────────────────────────────────────────────────
 add_action( 'wp_footer', 'wavesai_polishing_logo', 202 );
 function wavesai_polishing_logo() {
