@@ -109,6 +109,90 @@ li:has(> a[href$="/tools/"]) { display: none !important; }
 li:has(> a[href="/tools/"]) { display: none !important; }
 li.page_item_has_children:has(> a[href*="/tools/"]) { display: none !important; }
 li.menu-item-has-children:has(> a[href*="/tools/"]):not(.sub-menu li) { display: none !important; }
+
+/* ── Hide Product Studio button from Image Generator ── */
+#mode-pstudio { display: none !important; }
+.wavesai-img-mode-toggle { grid-template-columns: 1fr 1fr !important; }
+#wavesai-pstudio-mode { display: none !important; }
+
+/* ── Image Generator tips - darker text ── */
+.wavesai-tip {
+    color: #332628 !important;
+    background: rgba(51,38,40,0.08) !important;
+    border-left-color: #F81894 !important;
+}
+.wavesai-tip strong {
+    color: #332628 !important;
+}
+
+/* ── Global mobile overflow prevention ── */
+@media (max-width: 768px) {
+    .wavesai-tool-container {
+        max-width: 100vw !important;
+        overflow-x: hidden !important;
+        box-sizing: border-box !important;
+    }
+    .wavesai-tool-container * {
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    .wavesai-tool-container textarea,
+    .wavesai-tool-container input,
+    .wavesai-tool-container select {
+        max-width: 100% !important;
+    }
+
+    /* Business Coach 6-card grid: 2 columns on mobile */
+    .wavesai-coach-wrap > div[style*="grid-template-columns:repeat(3"] {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    .wavesai-coach-wrap div[style*="repeat(3,1fr)"] {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    /* Quick Actions buttons - prevent text overflow */
+    #coach-quick-actions > div {
+        gap: 8px !important;
+    }
+    #coach-quick-actions button {
+        font-size: 12px !important;
+        padding: 12px 8px !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        white-space: normal !important;
+    }
+
+    /* Video Studio cards - text overflow fix */
+    .wavesai-tool-card-v2 p,
+    .wavesai-tool-card-v2 .tool-desc {
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        white-space: normal !important;
+    }
+
+    /* Business Coach sessions - more spacing on mobile */
+    .coach-card {
+        padding: 16px 14px !important;
+        margin-bottom: 14px !important;
+    }
+    #coach-sessions .coach-card,
+    .coach-card h3 {
+        margin-bottom: 10px !important;
+    }
+    #coach-sessions button {
+        padding: 12px 16px !important;
+    }
+
+    /* Coaching Sessions history items - less cramped */
+    .coach-card > div[style*="border"] {
+        padding: 14px !important;
+        margin-bottom: 10px !important;
+    }
+    .coach-card > div[style*="border"] span {
+        display: block !important;
+        margin-top: 4px !important;
+    }
+}
 </style>
     <?php
 }
@@ -443,7 +527,246 @@ function wavesai_polishing_video_studio_card() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 7. LOGO SWAP
+// 7. LANDING PAGE WORDING FIX (change "Works While You Sleep" messaging)
+// ─────────────────────────────────────────────────────────────────────────────
+add_action( 'wp_footer', 'wavesai_polishing_landing_wording', 205 );
+function wavesai_polishing_landing_wording() {
+    ?>
+<script id="wavesai-polishing-landing-wording">
+(function(){
+    setTimeout(function(){
+        // Fix hero H1 heading - "Works While You Sleep" => "Helps You Get More Done"
+        var h1s = document.querySelectorAll('h1.elementor-heading-title, h1');
+        for(var i=0;i<h1s.length;i++){
+            var t = h1s[i].textContent.trim();
+            if(t === 'Works While You Sleep'){
+                h1s[i].textContent = 'Helps You Get More Done';
+            }
+        }
+
+        // Fix the feature cards / tool menu text that says "8 AI Systems That Work While You Sleep"
+        document.querySelectorAll('h2, h3, h4, p, span, div').forEach(function(el){
+            if(el.children && el.children.length > 0) return;
+            var txt = el.textContent.trim();
+            if(txt.indexOf('Work While You Sleep') !== -1 || txt.indexOf('Works While You Sleep') !== -1){
+                el.textContent = txt.replace(/Works? While You Sleep/gi, 'Helps You Get More Done');
+            }
+        });
+    }, 800);
+    setTimeout(function(){
+        var h1s = document.querySelectorAll('h1.elementor-heading-title, h1');
+        for(var i=0;i<h1s.length;i++){
+            if(h1s[i].textContent.trim() === 'Works While You Sleep'){
+                h1s[i].textContent = 'Helps You Get More Done';
+            }
+        }
+    }, 3500);
+})();
+</script>
+    <?php
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 8. MOBILE OVERFLOW FIX (Business Coach grid JS override)
+// ─────────────────────────────────────────────────────────────────────────────
+add_action( 'wp_footer', 'wavesai_polishing_mobile_overflow_js', 206 );
+function wavesai_polishing_mobile_overflow_js() {
+    ?>
+<script id="wavesai-polishing-mobile-overflow">
+(function(){
+    if(window.innerWidth > 768) return;
+    setTimeout(function(){
+        // Fix Business Coach 6-card grid to 2 columns on mobile
+        var coachWrap = document.querySelector('.wavesai-coach-wrap');
+        if(coachWrap){
+            var grids = coachWrap.querySelectorAll('div[style]');
+            grids.forEach(function(g){
+                var s = g.getAttribute('style') || '';
+                if(s.indexOf('repeat(3') !== -1 && s.indexOf('grid-template') !== -1){
+                    g.style.gridTemplateColumns = 'repeat(2, 1fr)';
+                }
+            });
+        }
+
+        // Ensure all tool containers don't overflow
+        document.querySelectorAll('.wavesai-tool-container').forEach(function(c){
+            c.style.maxWidth = '100%';
+            c.style.overflowX = 'hidden';
+        });
+    }, 500);
+})();
+</script>
+    <?php
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 9. ENHANCED WEBSITE ANALYSIS (actually fetches and reads the website)
+// ─────────────────────────────────────────────────────────────────────────────
+add_action( 'rest_api_init', 'wavesai_polishing_register_enhanced_analysis' );
+function wavesai_polishing_register_enhanced_analysis() {
+    register_rest_route( 'wavesai/v1', '/agent-analyse-enhanced', [
+        'methods' => 'POST',
+        'callback' => 'wavesai_polishing_enhanced_analysis',
+        'permission_callback' => function() { return is_user_logged_in(); },
+    ]);
+}
+
+function wavesai_polishing_enhanced_analysis( WP_REST_Request $request ) {
+    $user_id = get_current_user_id();
+    $nonce = $request->get_header('X-WavesAI-Nonce');
+    if ( ! wp_verify_nonce( $nonce, 'wavesai_api' ) && ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
+        return new WP_Error( 'bad_nonce', 'Security check failed.', [ 'status' => 403 ] );
+    }
+
+    $website_url = sanitize_text_field( $request->get_param('website_url') ?? '' );
+    $business_name = sanitize_text_field( $request->get_param('business_name') ?? '' );
+    $agent_type = sanitize_text_field( $request->get_param('agent_type') ?? '' );
+
+    if ( empty( $website_url ) ) {
+        return new WP_Error( 'missing_url', 'Please enter a website URL.', [ 'status' => 400 ] );
+    }
+
+    $cost = 5;
+    $credits = wavesai_get_credits( $user_id );
+    if ( $credits['balance'] < $cost ) {
+        return new WP_Error( 'no_credits', 'Not enough credits.', [ 'status' => 402 ] );
+    }
+
+    $agent_names = [
+        'social-media' => 'Social Media', 'email-marketing' => 'Email Marketing',
+        'seo-content' => 'SEO', 'ad-copy' => 'Ad Copy', 'cold-outreach' => 'Cold Outreach',
+        'brand-strategy' => 'Brand Strategy', 'personal-agent' => 'Personal',
+        'fitness' => 'Fitness', 'wellness' => 'Wellness', 'skincare' => 'Skincare',
+        'nutrition' => 'Nutrition', 'mindset' => 'Mindset', 'relationships' => 'Relationships',
+        'finance' => 'Finance', 'legal' => 'Legal', 'education' => 'Education',
+        'monetisation' => 'Monetisation',
+    ];
+    $agent_label = $agent_names[ $agent_type ] ?? 'General';
+
+    // Actually fetch the website content
+    $site_content = '';
+    $response = wp_remote_get( $website_url, [
+        'timeout' => 15,
+        'user-agent' => 'Mozilla/5.0 (compatible; WavesAI/1.0)',
+        'sslverify' => false,
+    ]);
+
+    if ( ! is_wp_error( $response ) && wp_remote_retrieve_response_code( $response ) === 200 ) {
+        $html = wp_remote_retrieve_body( $response );
+        // Extract title
+        preg_match( '/<title[^>]*>(.*?)<\/title>/si', $html, $title_match );
+        $page_title = ! empty( $title_match[1] ) ? trim( strip_tags( $title_match[1] ) ) : '';
+        // Extract meta description
+        preg_match( '/<meta[^>]*name=["\']description["\'][^>]*content=["\']([^"\']*)["\'][^>]*/si', $html, $desc_match );
+        $meta_desc = ! empty( $desc_match[1] ) ? trim( $desc_match[1] ) : '';
+        // Extract visible text (strip scripts, styles, tags)
+        $text = preg_replace( '/<script[^>]*>.*?<\/script>/si', '', $html );
+        $text = preg_replace( '/<style[^>]*>.*?<\/style>/si', '', $text );
+        $text = preg_replace( '/<nav[^>]*>.*?<\/nav>/si', '', $text );
+        $text = preg_replace( '/<footer[^>]*>.*?<\/footer>/si', '', $text );
+        $text = strip_tags( $text );
+        $text = preg_replace( '/\s+/', ' ', $text );
+        $text = trim( $text );
+        // Limit to ~3000 chars to fit in context
+        if ( strlen( $text ) > 3000 ) {
+            $text = substr( $text, 0, 3000 ) . '...';
+        }
+        $site_content = "Page Title: {$page_title}\nMeta Description: {$meta_desc}\n\nWebsite Content:\n{$text}";
+    } else {
+        $site_content = "(Could not fetch website - analysing based on URL and business name only)";
+    }
+
+    $system = "You are a senior {$agent_label} consultant. You have been given the actual content scraped from a business website. Provide a thorough, specific analysis:\n\n"
+        . "1. What this business does (based on the actual website content you can see)\n"
+        . "2. Their current strengths (what they are doing well)\n"
+        . "3. Specific {$agent_label} recommendations with actionable steps\n"
+        . "4. Quick wins they can implement this week\n"
+        . "5. Longer-term strategy suggestions\n\n"
+        . "Be specific - reference actual content, products, services, and messaging you can see on their website. Give concrete, actionable advice, not generic tips. Keep it to 300-400 words.";
+
+    $user_prompt = "Business: " . ( $business_name ?: 'Unknown' ) . "\nWebsite: {$website_url}\n\n--- WEBSITE CONTENT ---\n{$site_content}";
+
+    $messages = [
+        [ 'role' => 'system', 'content' => $system ],
+        [ 'role' => 'user', 'content' => $user_prompt ],
+    ];
+
+    $result = wavesai_chat( $messages, [ 'max_tokens' => 1000, 'temperature' => 0.7 ] );
+    if ( is_wp_error( $result ) ) {
+        return new WP_Error( 'ai_error', 'Analysis failed. Please try again.', [ 'status' => 500 ] );
+    }
+
+    $analysis = trim( $result['choices'][0]['message']['content'] ?? '' );
+    if ( empty( $analysis ) ) {
+        return new WP_Error( 'empty', 'Could not generate analysis.', [ 'status' => 500 ] );
+    }
+
+    wavesai_deduct_credits( $user_id, $cost, 'Enhanced Website Analysis - ' . $agent_label );
+
+    return rest_ensure_response([
+        'success' => true,
+        'analysis' => $analysis,
+        'credits_used' => $cost,
+        'credits_remaining' => wavesai_get_credits( $user_id )['balance'],
+    ]);
+}
+
+// Override the agent analyse JS to use enhanced endpoint
+add_action( 'wp_footer', 'wavesai_polishing_enhanced_analysis_js', 207 );
+function wavesai_polishing_enhanced_analysis_js() {
+    ?>
+<script id="wavesai-polishing-enhanced-analysis">
+(function(){
+    // Override the agent website analysis to use enhanced endpoint
+    if(typeof window.wavesaiAgentAnalyse === 'function'){
+        var origAnalyse = window.wavesaiAgentAnalyse;
+        window.wavesaiAgentAnalyse = function(){
+            var urlInput = document.getElementById('agent-website-url');
+            var nameInput = document.getElementById('agent-biz-name');
+            var typeInput = document.getElementById('agent-type-select') || document.querySelector('[name="agent_type"]');
+            if(!urlInput || !urlInput.value) {
+                return origAnalyse.apply(this, arguments);
+            }
+            var btn = document.getElementById('agent-analyse-btn');
+            if(btn) { btn.disabled = true; btn.textContent = 'Analysing website...'; }
+            var resultDiv = document.getElementById('agent-analysis-result');
+            if(resultDiv) resultDiv.innerHTML = '<div style="text-align:center;padding:20px;"><div style="width:32px;height:32px;border:3px solid rgba(248,24,148,0.15);border-top-color:#F81894;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 10px;"></div><p style="color:rgba(51,38,40,0.5);font-size:13px;">Reading and analysing your website...</p></div>';
+            var nonce = '';
+            var metaEl = document.querySelector('meta[name="wavesai-nonce"]');
+            if(metaEl) nonce = metaEl.content;
+            if(!nonce && typeof wavesaiNonce !== 'undefined') nonce = wavesaiNonce;
+            fetch('/wp-json/wavesai/v1/agent-analyse-enhanced', {
+                method: 'POST',
+                headers: { 'Content-Type':'application/json', 'X-WavesAI-Nonce': nonce, 'X-WP-Nonce': nonce },
+                body: JSON.stringify({
+                    website_url: urlInput.value,
+                    business_name: nameInput ? nameInput.value : '',
+                    agent_type: typeInput ? typeInput.value : ''
+                })
+            })
+            .then(function(r){ return r.json(); })
+            .then(function(data){
+                if(btn) { btn.disabled = false; btn.textContent = 'Analyse Website'; }
+                if(data.analysis){
+                    if(resultDiv) resultDiv.innerHTML = '<div style="background:rgba(248,24,148,0.06);border:1px solid rgba(248,24,148,0.15);border-radius:12px;padding:16px;"><h4 style="color:#332628;margin:0 0 10px;font-size:15px;">Website Analysis</h4><div style="color:#332628;font-size:14px;line-height:1.7;white-space:pre-wrap;">' + data.analysis.replace(/</g,'&lt;').replace(/\n/g,'<br>') + '</div></div>';
+                    if(typeof wavesaiUpdateCreditsDisplay === 'function' && data.credits_remaining !== undefined) wavesaiUpdateCreditsDisplay(data.credits_remaining);
+                } else {
+                    if(resultDiv) resultDiv.innerHTML = '<p style="color:#e74c3c;font-size:13px;">Analysis failed: ' + (data.message || 'Unknown error') + '</p>';
+                }
+            })
+            .catch(function(e){
+                if(btn) { btn.disabled = false; btn.textContent = 'Analyse Website'; }
+                return origAnalyse.apply(this, arguments);
+            });
+        };
+    }
+})();
+</script>
+    <?php
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 10. LOGO SWAP
 // ─────────────────────────────────────────────────────────────────────────────
 add_action( 'wp_footer', 'wavesai_polishing_logo', 202 );
 function wavesai_polishing_logo() {
