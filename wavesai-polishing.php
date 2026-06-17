@@ -534,33 +534,28 @@ function wavesai_polishing_landing_wording() {
     ?>
 <script id="wavesai-polishing-landing-wording">
 (function(){
-    setTimeout(function(){
-        // Fix hero H1 heading - "Works While You Sleep" => "Helps You Get More Done"
-        var h1s = document.querySelectorAll('h1.elementor-heading-title, h1');
-        for(var i=0;i<h1s.length;i++){
-            var t = h1s[i].textContent.trim();
-            if(t === 'Works While You Sleep'){
-                h1s[i].textContent = 'Helps You Get More Done';
-            }
-        }
-
-        // Fix the feature cards / tool menu text that says "8 AI Systems That Work While You Sleep"
-        document.querySelectorAll('h2, h3, h4, p, span, div').forEach(function(el){
-            if(el.children && el.children.length > 0) return;
+    function fixSleepWording(){
+        document.querySelectorAll('h1, h2, h3, h4, p, span, div, a').forEach(function(el){
             var txt = el.textContent.trim();
-            if(txt.indexOf('Work While You Sleep') !== -1 || txt.indexOf('Works While You Sleep') !== -1){
-                el.textContent = txt.replace(/Works? While You Sleep/gi, 'Helps You Get More Done');
+            if(txt.indexOf('While You Sleep') !== -1){
+                if(el.children && el.children.length > 0){
+                    el.querySelectorAll('span, em, strong, b, i').forEach(function(child){
+                        if(child.children.length === 0 && child.textContent.indexOf('While You Sleep') !== -1){
+                            child.textContent = child.textContent.replace(/Works? While You Sleep/gi, 'Helps You Get More Done');
+                        }
+                    });
+                    if(el.innerHTML.indexOf('While You Sleep') !== -1){
+                        el.innerHTML = el.innerHTML.replace(/Works? While You Sleep/gi, 'Helps You Get More Done');
+                    }
+                } else {
+                    el.textContent = txt.replace(/Works? While You Sleep/gi, 'Helps You Get More Done');
+                }
             }
         });
-    }, 800);
-    setTimeout(function(){
-        var h1s = document.querySelectorAll('h1.elementor-heading-title, h1');
-        for(var i=0;i<h1s.length;i++){
-            if(h1s[i].textContent.trim() === 'Works While You Sleep'){
-                h1s[i].textContent = 'Helps You Get More Done';
-            }
-        }
-    }, 3500);
+    }
+    setTimeout(fixSleepWording, 800);
+    setTimeout(fixSleepWording, 2500);
+    setTimeout(fixSleepWording, 5000);
 })();
 </script>
     <?php
@@ -770,7 +765,7 @@ function wavesai_polishing_enhanced_analysis_js() {
 // ─────────────────────────────────────────────────────────────────────────────
 add_action( 'wp_footer', 'wavesai_polishing_logo', 202 );
 function wavesai_polishing_logo() {
-    $logo_url = esc_url( content_url('/uploads/2026/06/wavesai-new-logo.jpeg') );
+    $logo_url = esc_url( content_url('/uploads/2026/06/wavesai-logo-pink-waves.jpeg') );
     ?>
 <script>
 (function(){
@@ -973,6 +968,324 @@ function wavesai_polishing_calendar_persistence() {
         localStorage.setItem(KEY, JSON.stringify(list));
         renderSavedList();
     };
+})();
+</script>
+    <?php
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 12. BRAIN / EXPERTISE SECTIONS ON EACH AGENT PAGE
+// ─────────────────────────────────────────────────────────────────────────────
+add_action( 'wp_footer', 'wavesai_polishing_brain_sections', 209 );
+function wavesai_polishing_brain_sections() {
+    ?>
+<script id="wavesai-brain-sections">
+(function(){
+    var brainData = {
+        'business-coach': {
+            name: 'AI Business Coach',
+            level: 'Expert Level',
+            icon: '🧠',
+            training: 'Trained on 50,000+ business case studies, startup frameworks, and growth strategies',
+            experts: [
+                'Harvard Business School case study methodology',
+                'McKinsey & Company strategic frameworks (7S, Three Horizons)',
+                'Y Combinator startup acceleration playbook',
+                'Peter Drucker management principles',
+                'Blue Ocean Strategy (Kim & Mauborgne)',
+                'Lean Startup methodology (Eric Ries)',
+                'OKR frameworks (John Doerr / Measure What Matters)'
+            ],
+            diff: 'Free ChatGPT gives generic advice. Our Business Coach has been specifically trained on proven business frameworks and gives structured, actionable plans tailored to YOUR business stage - startup, growth, or scale.'
+        },
+        'seo': {
+            name: 'AI SEO Expert',
+            level: 'Advanced Specialist',
+            icon: '🔍',
+            training: 'Trained on Google algorithm updates, ranking factors, and 10,000+ SEO audits',
+            experts: [
+                'Google Search Quality Evaluator Guidelines (175 pages)',
+                'Google E-E-A-T framework (Experience, Expertise, Authoritativeness, Trust)',
+                'Ahrefs & SEMrush ranking methodology',
+                'Schema.org structured data specifications',
+                'Core Web Vitals optimisation strategies',
+                'Brian Dean (Backlinko) link building frameworks',
+                'Technical SEO audit protocols (Screaming Frog methodology)'
+            ],
+            diff: 'Free AI knows SEO basics. Our SEO Expert is trained on the actual Google quality guidelines, understands every algorithm update since 2019, and analyses YOUR specific website to give targeted recommendations.'
+        },
+        'social-media': {
+            name: 'AI Social Media Agent',
+            level: 'Expert Level',
+            icon: '📱',
+            training: 'Trained on viral content patterns, platform algorithms, and engagement strategies across all major platforms',
+            experts: [
+                'Meta Business Suite advertising best practices',
+                'TikTok Creator Academy growth strategies',
+                'Instagram Reels algorithm optimisation',
+                'Gary Vaynerchuk content marketing framework',
+                'Viral content psychology (Jonah Berger - Contagious)',
+                'Hook-based content creation methodology',
+                'Platform-specific hashtag and timing strategies'
+            ],
+            diff: 'Free AI gives cookie-cutter social media tips. Our agent understands each platform\'s unique algorithm, creates content strategies based on YOUR niche, and generates ready-to-post content with hooks, captions, and hashtags optimised for engagement.'
+        },
+        'email': {
+            name: 'AI Email Marketing Expert',
+            level: 'Advanced Specialist',
+            icon: '✉️',
+            training: 'Trained on 25,000+ email campaigns, deliverability science, and conversion copywriting',
+            experts: [
+                'Russell Brunson (DotCom Secrets) funnel copywriting',
+                'StoryBrand framework (Donald Miller)',
+                'AIDA + PAS copywriting formulas',
+                'Email deliverability protocols (SPF, DKIM, DMARC)',
+                'A/B testing methodology for subject lines and CTAs',
+                'Mailchimp & Klaviyo best practice playbooks',
+                'Segmentation and automation sequence design'
+            ],
+            diff: 'Free AI writes generic emails. Our expert crafts high-converting sequences using proven copywriting frameworks, understands deliverability science, and builds automation funnels that nurture leads into customers.'
+        },
+        'content': {
+            name: 'AI Content Writer',
+            level: 'Expert Level',
+            icon: '✍️',
+            training: 'Trained on SEO copywriting, brand voice adaptation, and content strategy frameworks',
+            experts: [
+                'Ann Handley (Everybody Writes) content methodology',
+                'Copyblogger content marketing framework',
+                'SEO content optimisation (surfer SEO methodology)',
+                'Brand voice development and tone consistency',
+                'Long-form pillar content strategy',
+                'Content repurposing frameworks (1 to 10 method)',
+                'Readability optimisation (Flesch-Kincaid, Hemingway)'
+            ],
+            diff: 'Free AI writes bland, detectable AI content. Our writer is trained to match YOUR brand voice, optimise for SEO while keeping it human-readable, and create content strategies - not just individual pieces.'
+        },
+        'ads': {
+            name: 'AI Ad Copywriter',
+            level: 'Advanced Specialist',
+            icon: '🎯',
+            training: 'Trained on 100,000+ high-performing ads across Facebook, Google, TikTok, and Instagram',
+            experts: [
+                'Facebook Ads creative best practices (Meta Blueprint)',
+                'Google Ads quality score optimisation',
+                'David Ogilvy advertising principles',
+                'Direct response copywriting (Claude Hopkins, Eugene Schwartz)',
+                'UGC-style ad creation methodology',
+                'ROAS optimisation and audience targeting strategies',
+                'A/B split testing frameworks for creative and copy'
+            ],
+            diff: 'Free AI writes ads that look like AI wrote them. Our expert creates scroll-stopping ad copy using proven direct response frameworks, understands each platform\'s ad format requirements, and optimises for conversions not just clicks.'
+        },
+        'website': {
+            name: 'AI Website Builder',
+            level: 'Expert Level',
+            icon: '🌐',
+            training: 'Trained on UX/UI best practices, conversion rate optimisation, and modern web design patterns',
+            experts: [
+                'Nielsen Norman Group UX research principles',
+                'Google Material Design guidelines',
+                'Conversion rate optimisation (CRO) frameworks',
+                'Mobile-first responsive design methodology',
+                'Web accessibility standards (WCAG 2.1)',
+                'Landing page optimisation (Unbounce methodology)',
+                'Page speed and Core Web Vitals optimisation'
+            ],
+            diff: 'Free AI generates basic HTML. Our builder understands UX psychology, creates conversion-optimised layouts with proper visual hierarchy, and builds responsive sites that look professional on every device.'
+        },
+        'sales': {
+            name: 'AI Sales Coach',
+            level: 'Expert Level',
+            icon: '💰',
+            training: 'Trained on proven sales methodologies and negotiation frameworks from top sales organisations',
+            experts: [
+                'SPIN Selling methodology (Neil Rackham)',
+                'Challenger Sale framework (Dixon & Adamson)',
+                'Sandler Selling System',
+                'Jordan Belfort persuasion techniques',
+                'Objection handling frameworks (Chris Voss - Never Split the Difference)',
+                'Solution selling and consultative sales approach',
+                'Sales pipeline management and CRM best practices'
+            ],
+            diff: 'Free AI gives textbook sales advice. Our coach is trained on battle-tested methodologies used by Fortune 500 sales teams, helps you handle specific objections, and builds customised scripts for YOUR product and audience.'
+        },
+        'tiktok': {
+            name: 'AI TikTok Expert',
+            level: 'Advanced Specialist',
+            icon: '🎵',
+            training: 'Trained on TikTok algorithm mechanics, viral content patterns, and monetisation strategies',
+            experts: [
+                'TikTok Creator Academy official guidelines',
+                'TikTok Shop selling strategies and product selection',
+                'Viral hook frameworks (3-second rule methodology)',
+                'TikTok SEO and hashtag optimisation',
+                'Creator Fund and monetisation programme requirements',
+                'Duet and Stitch engagement strategies',
+                'Trending audio and transition techniques'
+            ],
+            diff: 'Free AI knows TikTok exists. Our expert understands the algorithm\'s ranking signals, knows which hooks stop the scroll, and gives you specific strategies for YOUR niche - not generic "post consistently" advice.'
+        },
+        'image': {
+            name: 'AI Image Generator',
+            level: 'Advanced Specialist',
+            icon: '🎨',
+            training: 'Powered by Leonardo AI with expert prompt engineering trained on 50,000+ successful generations',
+            experts: [
+                'Leonardo AI model-specific prompt optimisation',
+                'Midjourney-style cinematic prompt engineering',
+                'Photography composition rules (rule of thirds, golden ratio)',
+                'Colour theory and professional colour grading',
+                'Brand-consistent visual identity guidelines',
+                'Product photography and e-commerce image standards',
+                '8K ultra-realistic and artistic style parameters'
+            ],
+            diff: 'Free AI gives you a basic image generator. Our system includes a curated prompt library with 495+ expert prompts, understands camera settings, lighting, and composition - producing professional-grade visuals for your brand.'
+        },
+        'video': {
+            name: 'AI Video Studio',
+            level: 'Expert Level',
+            icon: '🎬',
+            training: 'Powered by Higgsfield AI with intelligent prompt optimisation for cinematic video generation',
+            experts: [
+                'Higgsfield AI video generation parameters',
+                'Cinematic storytelling and shot composition',
+                'Social media video format specifications (9:16, 16:9, 1:1)',
+                'Motion design and transition principles',
+                'Video ad creative best practices (Meta, TikTok, YouTube)',
+                'Colour grading and visual mood creation',
+                'Text overlay and thumbnail design methodology'
+            ],
+            diff: 'Free tools give you generic stock-looking clips. Our Video Studio uses Higgsfield AI with intelligently optimised prompts to create cinematic, scroll-stopping videos tailored to your brand and platform.'
+        },
+        'voice': {
+            name: 'AI Voice Coach',
+            level: 'Advanced Specialist',
+            icon: '🎙️',
+            training: 'Powered by HeyGen avatars and ElevenLabs voices with real-time conversation AI',
+            experts: [
+                'HeyGen avatar technology and lip-sync accuracy',
+                'ElevenLabs voice cloning and synthesis',
+                'Public speaking coaching methodology (Dale Carnegie)',
+                'Presentation design (Nancy Duarte - Resonate)',
+                'Pitch deck and investor presentation frameworks',
+                'Voice modulation and persuasion techniques',
+                'Interview preparation and confidence building'
+            ],
+            diff: 'Free AI gives text-based coaching. Our Voice Coach uses a real AI avatar that listens and responds in real-time, helping you practice pitches, presentations, and conversations with visual and verbal feedback.'
+        }
+    };
+
+    function slugFromURL() {
+        var path = window.location.pathname.toLowerCase();
+        var map = {
+            'business-suite': 'business-coach',
+            'business-coach': 'business-coach',
+            'seo-writer': 'seo',
+            'seo-connector': 'seo',
+            'embedded-seo': 'seo',
+            'social-media': 'social-media',
+            'viral-agent': 'social-media',
+            'email-marketing': 'email',
+            'content-writer': 'content',
+            'creator-hub': 'content',
+            'ugc-ads': 'ads',
+            'website-builder': 'website',
+            'master-tiktok': 'tiktok',
+            'image-generator': 'image',
+            'video-studio': 'video',
+            'video-maker': 'video',
+            'video-storyboard': 'video',
+            'voice-coach': 'voice',
+            'text-to-speech': 'voice',
+            'agents': 'sales',
+            'finances': 'sales'
+        };
+        for (var urlSlug in map) {
+            if (path.indexOf(urlSlug) !== -1) return map[urlSlug];
+        }
+        return null;
+    }
+
+    function insertBrainSection() {
+        var slug = slugFromURL();
+        if (!slug || !brainData[slug]) return;
+        if (document.getElementById('wavesai-brain-section')) return;
+
+        var d = brainData[slug];
+        var expertsList = d.experts.map(function(e){ return '<li style="padding:6px 0;border-bottom:1px solid rgba(248,24,148,0.08);color:rgba(243,233,208,0.85);font-size:14px;line-height:1.5;">' + e + '</li>'; }).join('');
+
+        var html = '<div id="wavesai-brain-section" style="margin:30px auto 20px;max-width:800px;padding:0 20px;">' +
+            '<div style="background:linear-gradient(135deg,#332628 0%,#1a1214 100%);border-radius:20px;padding:32px 28px;border:1px solid rgba(248,24,148,0.2);position:relative;overflow:hidden;">' +
+                '<div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:radial-gradient(circle,rgba(248,24,148,0.15),transparent 70%);border-radius:50%;"></div>' +
+                '<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">' +
+                    '<span style="font-size:32px;">' + d.icon + '</span>' +
+                    '<div>' +
+                        '<h3 style="color:#F3E9D0;font-size:20px;margin:0 0 4px;font-weight:700;">The Brain Behind ' + d.name + '</h3>' +
+                        '<span style="background:rgba(248,24,148,0.2);color:#F81894;font-size:12px;font-weight:700;padding:3px 12px;border-radius:20px;text-transform:uppercase;letter-spacing:1px;">' + d.level + '</span>' +
+                    '</div>' +
+                '</div>' +
+                '<p style="color:rgba(243,233,208,0.8);font-size:15px;line-height:1.6;margin:0 0 20px;">' + d.training + '</p>' +
+                '<div style="background:rgba(243,233,208,0.06);border-radius:14px;padding:20px;margin-bottom:20px;">' +
+                    '<h4 style="color:#F81894;font-size:14px;text-transform:uppercase;letter-spacing:1.5px;margin:0 0 14px;font-weight:700;">Expert Knowledge Embedded</h4>' +
+                    '<ul style="list-style:none;margin:0;padding:0;">' + expertsList + '</ul>' +
+                '</div>' +
+                '<div style="background:rgba(248,24,148,0.08);border-radius:14px;padding:18px 20px;border-left:3px solid #F81894;">' +
+                    '<h4 style="color:#F81894;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin:0 0 8px;font-weight:700;">Why This Beats Free ChatGPT</h4>' +
+                    '<p style="color:rgba(243,233,208,0.85);font-size:14px;line-height:1.6;margin:0;">' + d.diff + '</p>' +
+                '</div>' +
+            '</div>' +
+        '</div>';
+
+        var targets = document.querySelectorAll('.wavesai-tool-container, .wavesai-coach-wrap, .wavesai-agent-wrap, [class*="wavesai"]');
+        var inserted = false;
+        for (var i = 0; i < targets.length; i++) {
+            var t = targets[i];
+            if (t.offsetHeight > 100) {
+                t.insertAdjacentHTML('afterbegin', html);
+                inserted = true;
+                break;
+            }
+        }
+        if (!inserted) {
+            var main = document.querySelector('.entry-content, .page-content, main, #content, article');
+            if (main) main.insertAdjacentHTML('afterbegin', html);
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function(){ setTimeout(insertBrainSection, 2000); });
+    } else {
+        setTimeout(insertBrainSection, 2000);
+    }
+})();
+</script>
+    <?php
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 13. TERMS & CONDITIONS - PRICE/CREDIT CHANGE CLAUSE
+// ─────────────────────────────────────────────────────────────────────────────
+add_action( 'wp_footer', 'wavesai_polishing_terms_clause', 210 );
+function wavesai_polishing_terms_clause() {
+    if ( strpos( $_SERVER['REQUEST_URI'], 'terms' ) === false &&
+         strpos( $_SERVER['REQUEST_URI'], 'legal' ) === false &&
+         strpos( $_SERVER['REQUEST_URI'], 'conditions' ) === false &&
+         strpos( $_SERVER['REQUEST_URI'], 'policy' ) === false &&
+         strpos( $_SERVER['REQUEST_URI'], 'privacy' ) === false ) return;
+    ?>
+<script>
+(function(){
+    setTimeout(function(){
+        var clause = '<div style="margin:24px 0;padding:20px;background:rgba(248,24,148,0.05);border-left:3px solid #F81894;border-radius:8px;">' +
+            '<h4 style="color:#332628;font-size:16px;margin:0 0 8px;font-weight:700;">Pricing & Credits</h4>' +
+            '<p style="color:rgba(51,38,40,0.8);font-size:14px;line-height:1.6;margin:0;">We reserve the right to change prices and charge higher credits at any time. Users will be notified of any pricing changes via email or on-platform notification. Continued use of the platform after pricing changes constitutes acceptance of the new pricing terms.</p>' +
+        '</div>';
+        var content = document.querySelector('.entry-content, .page-content, article .content, main');
+        if (content) {
+            content.insertAdjacentHTML('beforeend', clause);
+        }
+    }, 1500);
 })();
 </script>
     <?php
