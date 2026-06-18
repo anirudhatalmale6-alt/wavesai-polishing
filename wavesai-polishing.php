@@ -193,6 +193,354 @@ li.menu-item-has-children:has(> a[href*="/tools/"]):not(.sub-menu li) { display:
         margin-top: 4px !important;
     }
 }
+
+/* ══════════════════════════════════════════════════════
+   COMPREHENSIVE COLOR & CONTRAST FIXES (June 2024)
+   Fixes green remnants, invisible text, input sizing
+   ══════════════════════════════════════════════════════ */
+
+/* ── 1. Landing page hero: kill green gradient text ── */
+.elementor-element-hero03 h1.elementor-heading-title,
+.elementor-element-hero03 .elementor-heading-title {
+    background: none !important;
+    background-image: none !important;
+    -webkit-background-clip: unset !important;
+    background-clip: unset !important;
+    -webkit-text-fill-color: #F81894 !important;
+    color: #F81894 !important;
+}
+
+/* ── 2. FAQ accordion headers: green to brown ── */
+.e-n-accordion-item-title-header {
+    color: #332628 !important;
+}
+.e-n-accordion-item-title-icon {
+    color: #F81894 !important;
+}
+
+/* ── 3. Image generator step indicators ── */
+.wavesai-step {
+    background: rgba(51,38,40,0.06) !important;
+    color: #332628 !important;
+}
+.wavesai-step.active {
+    background: rgba(248,24,148,0.1) !important;
+    color: #332628 !important;
+}
+.wavesai-step-num {
+    background: #F81894 !important;
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
+}
+.wavesai-step span:not(.wavesai-step-num) {
+    color: #332628 !important;
+    -webkit-text-fill-color: #332628 !important;
+    opacity: 1 !important;
+}
+.wavesai-step-content label,
+.wavesai-step-content h3,
+.wavesai-step-content h4 {
+    color: #332628 !important;
+}
+
+/* ── 4. Input fields: fix grey on grey ── */
+.wavesai-textarea,
+.wavesai-select,
+textarea.wavesai-textarea,
+select.wavesai-select,
+.qg-textarea,
+.qg-select {
+    background: rgba(51,38,40,0.08) !important;
+    color: #332628 !important;
+    border: 1px solid rgba(51,38,40,0.2) !important;
+}
+.wavesai-textarea::placeholder,
+.qg-textarea::placeholder {
+    color: rgba(51,38,40,0.45) !important;
+}
+
+/* ── 5. Brain sections: protect cream text on dark cards ── */
+#wavesai-brain-section,
+#wavesai-brain-section * {
+    color: inherit;
+}
+#wavesai-brain-section h3 {
+    color: #F3E9D0 !important;
+}
+#wavesai-brain-section h4 {
+    color: #F81894 !important;
+}
+#wavesai-brain-section p {
+    color: rgba(243,233,208,0.85) !important;
+}
+#wavesai-brain-section li {
+    color: rgba(243,233,208,0.85) !important;
+}
+#wavesai-brain-section span {
+    color: inherit !important;
+}
+
+/* ── 6. Reseller page stats: fix invisible green numbers ── */
+.wavesai-reseller-stat-num {
+    color: #F81894 !important;
+    font-weight: 700 !important;
+}
+.wavesai-reseller-stat-label {
+    color: #332628 !important;
+    opacity: 1 !important;
+}
+.wavesai-reseller-stat-card {
+    background: rgba(51,38,40,0.05) !important;
+    border: 1px solid rgba(51,38,40,0.12) !important;
+    border-radius: 16px !important;
+}
+.wavesai-reseller-stats h3,
+.wavesai-reseller-stats h4 {
+    color: #332628 !important;
+}
+
+/* ── 7. Reseller page: How It Works step headings ── */
+.wavesai-reseller-step strong,
+.wavesai-reseller-step h4,
+.wavesai-reseller-step h3 {
+    color: #F81894 !important;
+}
+.wavesai-reseller-step p,
+.wavesai-reseller-step span {
+    color: #332628 !important;
+    opacity: 1 !important;
+}
+.wavesai-reseller-step .wavesai-step-num,
+.wavesai-reseller-step .step-num {
+    background: #F81894 !important;
+    color: #fff !important;
+}
+
+/* ── 8. Reseller White Label pricing card text ── */
+.wavesai-reseller-pricing span,
+.wavesai-reseller-pricing .price-tag {
+    color: #332628 !important;
+    background: rgba(51,38,40,0.08) !important;
+}
+.wavesai-reseller-pricing li strong {
+    color: #F81894 !important;
+}
+
+/* ── 9. Website URL input: fix tiny size ── */
+input[id*="website-url"],
+input[id*="site-url"],
+input[placeholder*="website"],
+input[placeholder*="Website"],
+input[placeholder*="https://"] {
+    width: 100% !important;
+    min-height: 44px !important;
+    padding: 10px 16px !important;
+    font-size: 15px !important;
+    background: rgba(51,38,40,0.08) !important;
+    border: 1px solid rgba(51,38,40,0.2) !important;
+    border-radius: 12px !important;
+    color: #332628 !important;
+    box-sizing: border-box !important;
+}
+
+/* ── 10. AI Chat input: bigger ── */
+#chatbot-input {
+    min-height: 52px !important;
+    font-size: 15px !important;
+    padding: 14px 16px !important;
+    width: 100% !important;
+    background: rgba(51,38,40,0.06) !important;
+    border: 1px solid rgba(248,24,148,0.2) !important;
+    border-radius: 14px !important;
+    color: #332628 !important;
+}
+#chatbot-input::placeholder {
+    color: rgba(51,38,40,0.4) !important;
+}
+
+/* ── 11. Video Studio & Website Builder brain text ── */
+.wavesai-tool-container #wavesai-brain-section p,
+.wavesai-tool-container #wavesai-brain-section li,
+.wavesai-tool-container #wavesai-brain-section h3,
+.wavesai-tool-container #wavesai-brain-section h4,
+.wavesai-tool-container #wavesai-brain-section span {
+    color: inherit !important;
+}
+.wavesai-tool-container #wavesai-brain-section > div > div h3 {
+    color: #F3E9D0 !important;
+}
+.wavesai-tool-container #wavesai-brain-section > div > div p {
+    color: rgba(243,233,208,0.85) !important;
+}
+.wavesai-tool-container #wavesai-brain-section > div > div li {
+    color: rgba(243,233,208,0.85) !important;
+}
+.wavesai-tool-container #wavesai-brain-section > div > div h4 {
+    color: #F81894 !important;
+}
+
+/* ── 12. Agent pages: fix any green accent colors ── */
+.wavesai-agent-sidebar .wavesai-agent-level,
+.wavesai-level-badge {
+    background: rgba(248,24,148,0.2) !important;
+    color: #F81894 !important;
+}
+
+/* ── 13. Mode toggle buttons on image generator ── */
+.wavesai-img-mode-toggle button,
+.wavesai-img-mode-toggle div {
+    color: #332628 !important;
+    border-color: rgba(51,38,40,0.2) !important;
+}
+.wavesai-img-mode-toggle button.active,
+.wavesai-img-mode-toggle div.active,
+.wavesai-img-mode-toggle .active {
+    background: #F81894 !important;
+    color: #fff !important;
+    border-color: #F81894 !important;
+}
+
+/* ── 14. Prompt Library grey box fix (grey -> brown) ── */
+.pl-card {
+    background: rgba(51,38,40,0.04) !important;
+    border: 1px solid rgba(51,38,40,0.1) !important;
+    color: #332628 !important;
+}
+.pl-card p {
+    color: #332628 !important;
+}
+
+/* ── 15. Global: kill any remaining green accent colors ── */
+[style*="rgb(207, 226, 196)"],
+[style*="rgb(156, 175, 136)"],
+[style*="rgb(140, 216, 138)"],
+[style*="#CFE2C4"],
+[style*="#8FB996"],
+[style*="#9CAF88"],
+[style*="#8CD88A"] {
+    color: #F81894 !important;
+}
+
+/* ── 16. Dashboard cards text readability ── */
+.wavesai-dash-card h3,
+.wavesai-dash-card h4,
+.wavesai-dash-card p {
+    color: #F3E9D0 !important;
+}
+
+/* ── 17. Reseller marketing tips text ── */
+[class*="reseller"] .tip-card p,
+[class*="reseller"] .tip-card span,
+[class*="reseller"] .marketing-tip p {
+    color: #332628 !important;
+    opacity: 1 !important;
+}
+
+/* ══════════════════════════════════════════════════════
+   GREEN GRADIENT -> PINK GRADIENT OVERRIDES
+   Main plugin uses sage green gradients on all buttons,
+   credits bar, and step numbers. Override to pink.
+   ══════════════════════════════════════════════════════ */
+
+/* ── Credits bar ── */
+.wavesai-credit-badge,
+#wavesai-credit-badge,
+#wavesai-balance {
+    background: linear-gradient(135deg, #F81894 0%, #c41077 58%, #a00d63 100%) !important;
+    background-image: linear-gradient(135deg, #F81894 0%, #c41077 58%, #a00d63 100%) !important;
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
+}
+
+/* ── Back to Dashboard link ── */
+.wavesai-back-link {
+    color: #332628 !important;
+    background: rgba(51,38,40,0.06) !important;
+}
+
+/* ── ALL wavesai-btn buttons: green gradient to pink ── */
+.wavesai-btn,
+button.wavesai-btn,
+a.wavesai-btn {
+    background: linear-gradient(135deg, #F81894 0%, #c41077 58%, #a00d63 100%) !important;
+    background-image: linear-gradient(135deg, #F81894 0%, #c41077 58%, #a00d63 100%) !important;
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
+    border: none !important;
+}
+.wavesai-btn:hover,
+button.wavesai-btn:hover,
+a.wavesai-btn:hover {
+    background: linear-gradient(135deg, #e01685 0%, #a00d63 58%, #8a0b55 100%) !important;
+    background-image: linear-gradient(135deg, #e01685 0%, #a00d63 58%, #8a0b55 100%) !important;
+}
+
+/* ── Reseller step numbers ── */
+.wavesai-reseller-step-num {
+    background: #F81894 !important;
+    background-image: none !important;
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
+}
+
+/* ── Reseller "How It Works" step numbers (non-class) ── */
+div[style*="border-radius: 50%"][style*="gradient"] {
+    background: #F81894 !important;
+    background-image: none !important;
+}
+
+/* ── "Powered by ChatGPT" badge ── */
+span[style*="linear-gradient(90deg"] {
+    background: linear-gradient(90deg, #F81894, #c41077) !important;
+    background-image: linear-gradient(90deg, #F81894, #c41077) !important;
+}
+
+/* ── Reseller referral code heading ── */
+.wavesai-reseller-referral h4,
+.wavesai-reseller-referral h3 {
+    color: #F81894 !important;
+}
+
+/* ── Reseller rewards section ── */
+.wavesai-reseller-rewards,
+.wavesai-reseller-howto {
+    background: rgba(51,38,40,0.04) !important;
+}
+.wavesai-reseller-rewards p,
+.wavesai-reseller-rewards span,
+.wavesai-reseller-howto p,
+.wavesai-reseller-howto span {
+    color: #332628 !important;
+    opacity: 1 !important;
+}
+
+/* ── Tool header area ── */
+.wavesai-tool-header {
+    color: #332628 !important;
+}
+
+/* ── WhatsApp share button: keep green ── */
+#wavesai-share-wa-btn,
+button[id*="wa-btn"],
+a[id*="wa-btn"] {
+    background: linear-gradient(135deg, #25D366, #128C7E) !important;
+    background-image: linear-gradient(135deg, #25D366, #128C7E) !important;
+}
+
+@media (max-width: 768px) {
+    #chatbot-input {
+        min-height: 48px !important;
+        font-size: 14px !important;
+    }
+    input[id*="website-url"],
+    input[id*="site-url"],
+    input[placeholder*="website"],
+    input[placeholder*="Website"],
+    input[placeholder*="https://"] {
+        min-height: 42px !important;
+        font-size: 14px !important;
+    }
+}
 </style>
     <?php
 }
@@ -262,6 +610,125 @@ function wavesai_polishing_menu_js() {
         // Remove floating Dashboard button
         var floatingDash = document.getElementById('wavesai-mobile-dash');
         if(floatingDash) floatingDash.remove();
+
+        // Fix green gradient on hero text
+        document.querySelectorAll('.elementor-heading-title').forEach(function(el) {
+            var style = window.getComputedStyle(el);
+            if (style.backgroundImage && style.backgroundImage.indexOf('gradient') !== -1 && style.webkitBackgroundClip === 'text') {
+                el.style.setProperty('background', 'none', 'important');
+                el.style.setProperty('background-image', 'none', 'important');
+                el.style.setProperty('-webkit-background-clip', 'unset', 'important');
+                el.style.setProperty('background-clip', 'unset', 'important');
+                el.style.setProperty('-webkit-text-fill-color', '#F81894', 'important');
+                el.style.setProperty('color', '#F81894', 'important');
+            }
+        });
+
+        // Fix any green-colored text globally
+        document.querySelectorAll('*').forEach(function(el) {
+            var style = window.getComputedStyle(el);
+            var color = style.color;
+            var m = color.match(/rgb\((\d+), (\d+), (\d+)\)/);
+            if (m) {
+                var r = parseInt(m[1]), g = parseInt(m[2]), b = parseInt(m[3]);
+                if (g > 140 && g > r * 1.2 && g > b * 1.2 && !(r > 200 && g > 200 && b > 200)) {
+                    if (el.closest('#wpadminbar')) return;
+                    el.style.setProperty('color', '#F81894', 'important');
+                }
+            }
+        });
+
+        // Fix reseller stat numbers
+        document.querySelectorAll('.wavesai-reseller-stat-num').forEach(function(el) {
+            el.style.setProperty('color', '#F81894', 'important');
+        });
+        document.querySelectorAll('.wavesai-reseller-stat-label').forEach(function(el) {
+            el.style.setProperty('color', '#332628', 'important');
+            el.style.setProperty('opacity', '1', 'important');
+        });
+        document.querySelectorAll('.wavesai-reseller-stat-card').forEach(function(el) {
+            el.style.setProperty('background', 'rgba(51,38,40,0.05)', 'important');
+            el.style.setProperty('border', '1px solid rgba(51,38,40,0.12)', 'important');
+        });
+
+        // Fix step indicators on image generator
+        document.querySelectorAll('.wavesai-step-num').forEach(function(el) {
+            el.style.setProperty('background', '#F81894', 'important');
+            el.style.setProperty('color', '#fff', 'important');
+            el.style.setProperty('-webkit-text-fill-color', '#fff', 'important');
+        });
+
+        // Fix chatbot input height
+        var chatInput = document.getElementById('chatbot-input');
+        if (chatInput) {
+            chatInput.style.setProperty('min-height', '52px', 'important');
+            chatInput.style.setProperty('font-size', '15px', 'important');
+            chatInput.style.setProperty('padding', '14px 16px', 'important');
+        }
+
+        // Fix ALL green gradient elements everywhere
+        document.querySelectorAll('*').forEach(function(el) {
+            if (el.closest('#wpadminbar')) return;
+            var style = window.getComputedStyle(el);
+            var bg = style.backgroundImage || '';
+            if (bg.indexOf('gradient') !== -1 && (bg.indexOf('175, 136') !== -1 || bg.indexOf('226, 196') !== -1 || bg.indexOf('153, 104') !== -1)) {
+                // Skip WhatsApp share button
+                var eid = el.id || '';
+                if (eid === 'wavesai-share-wa-btn' || eid === 'wavesai-copy-wa-btn') return;
+                // Credits badge
+                if (el.classList.contains('wavesai-credit-badge') || eid === 'wavesai-credit-badge' || eid === 'wavesai-balance') {
+                    el.style.setProperty('background', 'linear-gradient(135deg, #F81894, #c41077, #a00d63)', 'important');
+                    el.style.setProperty('background-image', 'linear-gradient(135deg, #F81894, #c41077, #a00d63)', 'important');
+                    el.style.setProperty('color', '#fff', 'important');
+                    el.style.setProperty('-webkit-text-fill-color', '#fff', 'important');
+                }
+                // Step numbers (round circles with numbers)
+                else if (el.textContent.trim().length <= 2 && !isNaN(el.textContent.trim())) {
+                    el.style.setProperty('background', '#F81894', 'important');
+                    el.style.setProperty('background-image', 'none', 'important');
+                    el.style.setProperty('color', '#fff', 'important');
+                    el.style.setProperty('-webkit-text-fill-color', '#fff', 'important');
+                }
+                // All other buttons/elements
+                else {
+                    el.style.setProperty('background', 'linear-gradient(135deg, #F81894, #c41077, #a00d63)', 'important');
+                    el.style.setProperty('background-image', 'linear-gradient(135deg, #F81894, #c41077, #a00d63)', 'important');
+                    el.style.setProperty('color', '#fff', 'important');
+                    el.style.setProperty('-webkit-text-fill-color', '#fff', 'important');
+                }
+            }
+        });
+
+        // Fix Back to Dashboard link
+        document.querySelectorAll('.wavesai-back-link').forEach(function(el) {
+            el.style.setProperty('color', '#332628', 'important');
+            el.style.setProperty('background', 'rgba(51,38,40,0.06)', 'important');
+            el.style.setProperty('background-image', 'none', 'important');
+        });
+
+        // Fix White Label faded text (cream on pink)
+        document.querySelectorAll('strong').forEach(function(el) {
+            var style = window.getComputedStyle(el);
+            var c = style.color;
+            var m = c.match(/rgb\((\d+), (\d+), (\d+)\)/);
+            if (m) {
+                var r = parseInt(m[1]), g = parseInt(m[2]), b = parseInt(m[3]);
+                if (r > 230 && g > 230 && b > 220) {
+                    var parent = el.closest('[style*="border"]') || el.closest('[class*="reseller"]');
+                    if (parent) {
+                        el.style.setProperty('color', '#F81894', 'important');
+                    }
+                }
+            }
+        });
+
+        // Fix prompt library search bar
+        var plSearch = document.querySelector('.pl-search');
+        if (plSearch) {
+            plSearch.style.setProperty('background', '#F3E9D0', 'important');
+            plSearch.style.setProperty('color', '#332628', 'important');
+            plSearch.style.setProperty('border', '1px solid rgba(51,38,40,0.2)', 'important');
+        }
 
     }, 3000);
 })();
@@ -1213,26 +1680,26 @@ function wavesai_polishing_brain_sections() {
         if (document.getElementById('wavesai-brain-section')) return;
 
         var d = brainData[slug];
-        var expertsList = d.experts.map(function(e){ return '<li style="padding:6px 0;border-bottom:1px solid rgba(248,24,148,0.08);color:rgba(243,233,208,0.85);font-size:14px;line-height:1.5;">' + e + '</li>'; }).join('');
+        var expertsList = d.experts.map(function(e){ return '<li style="padding:6px 0;border-bottom:1px solid rgba(248,24,148,0.08);color:rgba(243,233,208,0.85) !important;font-size:14px;line-height:1.5;">' + e + '</li>'; }).join('');
 
         var html = '<div id="wavesai-brain-section" style="margin:30px auto 20px;max-width:800px;padding:0 20px;">' +
-            '<div style="background:linear-gradient(135deg,#332628 0%,#1a1214 100%);border-radius:20px;padding:32px 28px;border:1px solid rgba(248,24,148,0.2);position:relative;overflow:hidden;">' +
+            '<div style="background:linear-gradient(135deg,#332628 0%,#1a1214 100%) !important;border-radius:20px;padding:32px 28px;border:1px solid rgba(248,24,148,0.2);position:relative;overflow:hidden;">' +
                 '<div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:radial-gradient(circle,rgba(248,24,148,0.15),transparent 70%);border-radius:50%;"></div>' +
                 '<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">' +
                     '<span style="font-size:32px;">' + d.icon + '</span>' +
                     '<div>' +
-                        '<h3 style="color:#F3E9D0;font-size:20px;margin:0 0 4px;font-weight:700;">The Brain Behind ' + d.name + '</h3>' +
-                        '<span style="background:rgba(248,24,148,0.2);color:#F81894;font-size:12px;font-weight:700;padding:3px 12px;border-radius:20px;text-transform:uppercase;letter-spacing:1px;">' + d.level + '</span>' +
+                        '<h3 style="color:#F3E9D0 !important;font-size:20px;margin:0 0 4px;font-weight:700;">The Brain Behind ' + d.name + '</h3>' +
+                        '<span style="background:rgba(248,24,148,0.2) !important;color:#F81894 !important;font-size:12px;font-weight:700;padding:3px 12px;border-radius:20px;text-transform:uppercase;letter-spacing:1px;">' + d.level + '</span>' +
                     '</div>' +
                 '</div>' +
-                '<p style="color:rgba(243,233,208,0.8);font-size:15px;line-height:1.6;margin:0 0 20px;">' + d.training + '</p>' +
-                '<div style="background:rgba(243,233,208,0.06);border-radius:14px;padding:20px;margin-bottom:20px;">' +
-                    '<h4 style="color:#F81894;font-size:14px;text-transform:uppercase;letter-spacing:1.5px;margin:0 0 14px;font-weight:700;">Expert Knowledge Embedded</h4>' +
+                '<p style="color:rgba(243,233,208,0.8) !important;font-size:15px;line-height:1.6;margin:0 0 20px;">' + d.training + '</p>' +
+                '<div style="background:rgba(243,233,208,0.06) !important;border-radius:14px;padding:20px;margin-bottom:20px;">' +
+                    '<h4 style="color:#F81894 !important;font-size:14px;text-transform:uppercase;letter-spacing:1.5px;margin:0 0 14px;font-weight:700;">Expert Knowledge Embedded</h4>' +
                     '<ul style="list-style:none;margin:0;padding:0;">' + expertsList + '</ul>' +
                 '</div>' +
-                '<div style="background:rgba(248,24,148,0.08);border-radius:14px;padding:18px 20px;border-left:3px solid #F81894;">' +
-                    '<h4 style="color:#F81894;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin:0 0 8px;font-weight:700;">Why This Beats Free ChatGPT</h4>' +
-                    '<p style="color:rgba(243,233,208,0.85);font-size:14px;line-height:1.6;margin:0;">' + d.diff + '</p>' +
+                '<div style="background:rgba(248,24,148,0.08) !important;border-radius:14px;padding:18px 20px;border-left:3px solid #F81894;">' +
+                    '<h4 style="color:#F81894 !important;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin:0 0 8px;font-weight:700;">Why This Beats Free ChatGPT</h4>' +
+                    '<p style="color:rgba(243,233,208,0.85) !important;font-size:14px;line-height:1.6;margin:0;">' + d.diff + '</p>' +
                 '</div>' +
             '</div>' +
         '</div>';
