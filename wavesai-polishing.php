@@ -541,6 +541,173 @@ a[id*="wa-btn"] {
         font-size: 14px !important;
     }
 }
+
+/* ══════════════════════════════════════════════════════
+   ROUND 2 FIXES (June 18)
+   Header cream, gallery text, table responsive,
+   mobile overflow, tips contrast, reseller tips
+   ══════════════════════════════════════════════════════ */
+
+/* ── 17b. Logo: cream background to match header ── */
+.custom-logo,
+.ast-custom-logo img,
+.site-logo-img img,
+header img.custom-logo {
+    background-color: #F3E9D0 !important;
+    border-radius: 6px !important;
+}
+
+/* ── 18. Header/nav bar: cream background ── */
+header.site-header,
+#masthead,
+.main-header-bar,
+.ast-primary-header-bar,
+.ast-primary-header,
+.site-primary-header-wrap,
+.ast-builder-grid-row,
+.ast-mobile-header-wrap,
+.ast-above-header-bar {
+    background-color: #F3E9D0 !important;
+    background: #F3E9D0 !important;
+}
+.ast-mobile-menu-trigger-minimal,
+.ast-button-wrap .mobile-menu-toggle-btn,
+.ast-mobile-menu-buttons-minimal {
+    color: #332628 !important;
+    border-color: #332628 !important;
+}
+.ast-mobile-menu-trigger-minimal svg,
+.ast-mobile-menu-trigger-minimal .ast-mobile-svg,
+.menu-toggle svg,
+.ast-mobile-header-wrap svg {
+    fill: #332628 !important;
+    color: #332628 !important;
+}
+
+/* ── 19. Gallery/generation cards: cream text on dark bg ── */
+.wavesai-gallery-item,
+.wavesai-gallery-item p,
+.wavesai-gallery-item span,
+.wavesai-gallery-item div {
+    color: #F3E9D0 !important;
+}
+.wavesai-gallery-item .gallery-meta,
+.wavesai-gallery-item .gallery-meta *,
+.wavesai-gallery-item .gallery-date {
+    color: rgba(243,233,208,0.8) !important;
+}
+.wavesai-gallery-item .gallery-tool {
+    color: #F81894 !important;
+}
+.gallery-caption-wrap,
+.gallery-caption-wrap p,
+.gallery-caption-wrap span,
+.gallery-caption-wrap div,
+[id*="gallery-caption"],
+[id*="gallery-caption"] p,
+[id*="gallery-caption"] span {
+    color: #F3E9D0 !important;
+}
+.gallery-caption-btn {
+    color: #F81894 !important;
+    background: rgba(248,24,148,0.15) !important;
+}
+
+/* ── 20. Dashboard activity table: responsive on mobile ── */
+.wavesai-activity {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    max-width: 100% !important;
+}
+@media (max-width: 768px) {
+    .wavesai-activity-table {
+        font-size: 12px !important;
+        width: 100% !important;
+        table-layout: fixed !important;
+    }
+    .wavesai-activity-table th,
+    .wavesai-activity-table td {
+        padding: 8px 5px !important;
+        word-break: break-word !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+    .wavesai-activity-table th:nth-child(1),
+    .wavesai-activity-table td:nth-child(1) { width: 30% !important; }
+    .wavesai-activity-table th:nth-child(2),
+    .wavesai-activity-table td:nth-child(2) { width: 18% !important; }
+    .wavesai-activity-table th:nth-child(3),
+    .wavesai-activity-table td:nth-child(3) { width: 22% !important; }
+    .wavesai-activity-table th:nth-child(4),
+    .wavesai-activity-table td:nth-child(4) { width: 30% !important; }
+}
+
+/* ── 21. Mobile: prevent side-to-side swing ── */
+@media (max-width: 768px) {
+    html {
+        overflow-x: hidden !important;
+    }
+    body {
+        overflow-x: hidden !important;
+        max-width: 100vw !important;
+    }
+    .elementor-element-hero01,
+    .elementor-element-cta01,
+    .e-con,
+    .e-con-full {
+        max-width: 100vw !important;
+        overflow-x: hidden !important;
+    }
+}
+
+/* ── 22. Image generator tips: strong dark text ── */
+.wavesai-tool-container div[style*="border-left"],
+.wavesai-tool-container div[style*="padding"][style*="border-radius"] {
+    color: #332628 !important;
+    opacity: 1 !important;
+}
+.wavesai-tool-container div[style*="border-left"] strong,
+.wavesai-tool-container div[style*="border-left"] b,
+.wavesai-tool-container div[style*="padding"][style*="border-radius"] strong {
+    color: #332628 !important;
+}
+
+/* ── 23. Reseller marketing tip cards: dark text on cream ── */
+.wavesai-reseller-tips,
+.wavesai-reseller-tips div,
+.wavesai-reseller-tips p,
+.wavesai-reseller-tips span,
+.wavesai-reseller-tips strong,
+.wavesai-reseller-howto div,
+.wavesai-reseller-howto p,
+.wavesai-reseller-howto strong,
+.wavesai-reseller-marketing div,
+.wavesai-reseller-marketing p,
+.wavesai-reseller-marketing strong {
+    color: #332628 !important;
+    opacity: 1 !important;
+}
+.wavesai-reseller-tips strong,
+.wavesai-reseller-howto strong,
+.wavesai-reseller-marketing strong {
+    color: #F81894 !important;
+}
+
+/* ── 24. My Generations heading/subtitle: dark on cream ── */
+.wavesai-section-title {
+    color: #332628 !important;
+    -webkit-text-fill-color: #332628 !important;
+    opacity: 1 !important;
+}
+h3.wavesai-section-title {
+    color: #332628 !important;
+    -webkit-text-fill-color: #332628 !important;
+}
+.wavesai-section-title + p,
+.wavesai-section-title + span,
+.wavesai-wrap > p {
+    color: rgba(51,38,40,0.7) !important;
+}
 </style>
     <?php
 }
@@ -729,6 +896,110 @@ function wavesai_polishing_menu_js() {
             plSearch.style.setProperty('color', '#332628', 'important');
             plSearch.style.setProperty('border', '1px solid rgba(51,38,40,0.2)', 'important');
         }
+
+        // Fix prompt library search bar (end of original 3s fixes)
+
+        // == PERSISTENT FIXES (re-run to beat main plugin JS timing) ==
+        function applyPersistentFixes() {
+            // Fix header to cream background (main plugin sets inline !important)
+            document.querySelectorAll('#masthead, #masthead > div, .ast-main-header-wrap, .main-header-bar, .ast-primary-header-bar, .site-primary-header-wrap, .ast-builder-grid-row, #ast-desktop-header, #ast-mobile-header, #ast-mobile-header > .ast-main-header-wrap, #ast-mobile-header .ast-primary-header-bar, .site-header-primary-section-left, .site-header-primary-section-right, .ast-builder-layout-element').forEach(function(el) {
+                el.style.setProperty('background', '#F3E9D0', 'important');
+                el.style.setProperty('background-color', '#F3E9D0', 'important');
+            });
+            // Mobile menu popup stays dark
+            document.querySelectorAll('.ast-mobile-header-content').forEach(function(el) {
+                el.style.setProperty('background', '#F3E9D0', 'important');
+            });
+            document.querySelectorAll('.ast-builder-menu-mobile, .ast-builder-menu-mobile .ast-main-header-bar-alignment, .main-header-bar-navigation, #ast-mobile-site-navigation').forEach(function(el) {
+                el.style.setProperty('background', '#332628', 'important');
+            });
+            // Hamburger menu: dark brown on cream
+            document.querySelectorAll('.ast-mobile-menu-trigger-minimal, .menu-toggle, .main-header-menu-toggle').forEach(function(el) {
+                el.style.setProperty('color', '#332628', 'important');
+                el.style.setProperty('border-color', '#332628', 'important');
+            });
+            document.querySelectorAll('.ast-button-wrap').forEach(function(el) {
+                el.style.setProperty('color', '#332628', 'important');
+                el.style.setProperty('border-color', '#332628', 'important');
+            });
+            document.querySelectorAll('.mobile-menu-toggle-icon').forEach(function(el) {
+                el.style.setProperty('color', '#332628', 'important');
+            });
+            document.querySelectorAll('.ast-mobile-menu-trigger-minimal svg, .menu-toggle svg, .ast-mobile-header-wrap svg').forEach(function(el) {
+                el.style.setProperty('fill', '#332628', 'important');
+                el.style.setProperty('color', '#332628', 'important');
+            });
+
+            // Fix My Generations heading
+            document.querySelectorAll('.wavesai-section-title').forEach(function(el) {
+                el.style.setProperty('color', '#332628', 'important');
+                el.style.setProperty('-webkit-text-fill-color', '#332628', 'important');
+                el.style.setProperty('opacity', '1', 'important');
+            });
+            // Fix subtitle/tip text after heading
+            document.querySelectorAll('.wavesai-wrap > p, .wavesai-wrap > span, .wavesai-wrap > small').forEach(function(el) {
+                var c = window.getComputedStyle(el).color;
+                var m = c.match(/rgb\((\d+), (\d+), (\d+)\)/);
+                if (m && parseInt(m[1]) > 200 && parseInt(m[2]) > 200 && parseInt(m[3]) > 200) {
+                    el.style.setProperty('color', 'rgba(51,38,40,0.7)', 'important');
+                }
+            });
+
+            // Fix gallery card text (cream on dark cards)
+            document.querySelectorAll('.wavesai-gallery-item').forEach(function(el) {
+                el.querySelectorAll('.gallery-meta, .gallery-meta span, .gallery-meta p, .gallery-date, .gallery-tool-label, p, span, div:not(.gallery-actions)').forEach(function(c) {
+                    if (c.closest('.gallery-actions')) return;
+                    c.style.setProperty('color', '#F3E9D0', 'important');
+                });
+                el.querySelectorAll('.gallery-tool').forEach(function(c) {
+                    c.style.setProperty('color', '#F81894', 'important');
+                });
+            });
+
+            // Fix caption text
+            document.querySelectorAll('.gallery-caption-wrap, [id*="gallery-caption"]').forEach(function(el) {
+                el.style.setProperty('color', '#F3E9D0', 'important');
+                el.querySelectorAll('p, span, div').forEach(function(c) {
+                    c.style.setProperty('color', '#F3E9D0', 'important');
+                });
+            });
+
+            // Fix reseller marketing tips
+            document.querySelectorAll('[class*="reseller"]').forEach(function(section) {
+                section.querySelectorAll('div, p, span').forEach(function(el) {
+                    var c = window.getComputedStyle(el).color;
+                    var m = c.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+                    if (m) {
+                        var r = parseInt(m[1]), g = parseInt(m[2]), b = parseInt(m[3]);
+                        if (r > 220 && g > 220 && b > 200) {
+                            el.style.setProperty('color', '#332628', 'important');
+                        }
+                    }
+                });
+                section.querySelectorAll('strong').forEach(function(el) {
+                    el.style.setProperty('color', '#F81894', 'important');
+                });
+            });
+
+            // Fix image generator tips
+            document.querySelectorAll('.wavesai-tool-container').forEach(function(tc) {
+                tc.querySelectorAll('div').forEach(function(d) {
+                    var t = d.textContent;
+                    if (t.indexOf('Tips for') !== -1 || t.indexOf('For image') !== -1 || t.indexOf('Tip:') !== -1) {
+                        d.style.setProperty('color', '#332628', 'important');
+                        d.querySelectorAll('*').forEach(function(c) {
+                            c.style.setProperty('color', '#332628', 'important');
+                        });
+                    }
+                });
+            });
+        }
+
+        // Run immediately at 3s, then again at 5s, 8s, 12s
+        applyPersistentFixes();
+        setTimeout(applyPersistentFixes, 2000);
+        setTimeout(applyPersistentFixes, 5000);
+        setTimeout(applyPersistentFixes, 9000);
 
     }, 3000);
 })();
@@ -1232,7 +1503,7 @@ function wavesai_polishing_enhanced_analysis_js() {
 // ─────────────────────────────────────────────────────────────────────────────
 add_action( 'wp_footer', 'wavesai_polishing_logo', 202 );
 function wavesai_polishing_logo() {
-    $logo_url = esc_url( content_url('/uploads/2026/06/wavesai-logo-pink-waves.jpeg') );
+    $logo_url = esc_url( content_url('/uploads/2026/06/wavesai-logo-cream.png') );
     ?>
 <script>
 (function(){
