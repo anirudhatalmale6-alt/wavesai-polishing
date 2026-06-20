@@ -115,14 +115,25 @@ li.menu-item-has-children:has(> a[href*="/tools/"]):not(.sub-menu li) { display:
 .wavesai-img-mode-toggle { grid-template-columns: 1fr 1fr !important; }
 #wavesai-pstudio-mode { display: none !important; }
 
-/* ── Image Generator tips - darker text ── */
-.wavesai-tip {
+/* ── Image Generator & Reseller tips - darker text ── */
+body .wavesai-tip,
+body div.wavesai-tip,
+body .entry-content .wavesai-tip,
+body .entry-content div.wavesai-tip,
+article .wavesai-tip,
+.site-content .wavesai-tip {
     color: #332628 !important;
+    -webkit-text-fill-color: #332628 !important;
     background: rgba(51,38,40,0.08) !important;
     border-left-color: #F81894 !important;
+    opacity: 1 !important;
 }
-.wavesai-tip strong {
-    color: #332628 !important;
+body .wavesai-tip strong,
+body .entry-content .wavesai-tip strong,
+article .wavesai-tip strong {
+    color: #F81894 !important;
+    -webkit-text-fill-color: #F81894 !important;
+    opacity: 1 !important;
 }
 
 /* ── Global mobile overflow prevention ── */
@@ -693,6 +704,35 @@ header.site-header,
     color: #F81894 !important;
 }
 
+/* ── 23b. Dashboard auto-delete subtitle + sharing tip ── */
+body .wavesai-section-title + span,
+body .wavesai-section-title ~ span,
+body span[style*="opacity"],
+body .entry-content span[style*="auto-delete"],
+body .entry-content .wavesai-gallery-subtitle {
+    color: #998878 !important;
+    -webkit-text-fill-color: #998878 !important;
+    opacity: 1 !important;
+}
+body .entry-content p[style*="color: rgba(245"],
+body .entry-content div[style*="color: rgba(245"],
+body .wavesai-sharing-tip,
+body .entry-content p[style*="Tip: Sharing"],
+body .entry-content .wavesai-gallery-tip {
+    color: #7a6a5a !important;
+    -webkit-text-fill-color: #7a6a5a !important;
+    opacity: 1 !important;
+}
+
+/* ── 23c. Reseller price badges readable ── */
+body .entry-content span[style*="207, 226, 196"],
+body .entry-content .price-tag,
+body .wavesai-reseller-pricing .price-tag {
+    color: #998878 !important;
+    -webkit-text-fill-color: #998878 !important;
+    border-color: #998878 !important;
+}
+
 /* ── 24. My Generations heading/subtitle: dark on cream ── */
 .wavesai-section-title {
     color: #332628 !important;
@@ -964,7 +1004,18 @@ function wavesai_polishing_menu_js() {
                 });
             });
 
-            // Fix reseller marketing tips
+            // Fix reseller marketing tips - target .wavesai-tip directly
+            document.querySelectorAll('.wavesai-tip').forEach(function(el) {
+                el.style.setProperty('color', '#332628', 'important');
+                el.style.setProperty('-webkit-text-fill-color', '#332628', 'important');
+                el.style.setProperty('background', 'rgba(51,38,40,0.08)', 'important');
+                el.style.setProperty('opacity', '1', 'important');
+                el.querySelectorAll('strong').forEach(function(s) {
+                    s.style.setProperty('color', '#F81894', 'important');
+                    s.style.setProperty('-webkit-text-fill-color', '#F81894', 'important');
+                });
+            });
+            // Also scan reseller sections for any other light-on-cream text
             document.querySelectorAll('[class*="reseller"]').forEach(function(section) {
                 section.querySelectorAll('div, p, span').forEach(function(el) {
                     var c = window.getComputedStyle(el).color;
@@ -992,6 +1043,56 @@ function wavesai_polishing_menu_js() {
                         });
                     }
                 });
+            });
+
+            // Fix dashboard "(auto-deleted after 7 days)" subtitle and sharing tip
+            document.querySelectorAll('span, p, div').forEach(function(el) {
+                var t = el.textContent.trim();
+                if (t === '(auto-deleted after 7 days)' || t.indexOf('auto-deleted after') !== -1) {
+                    el.style.setProperty('color', '#998878', 'important');
+                    el.style.setProperty('-webkit-text-fill-color', '#998878', 'important');
+                    el.style.setProperty('opacity', '1', 'important');
+                }
+                if (t.indexOf('Tip: Sharing to') !== -1 || t.indexOf('Sharing to Instagram') !== -1) {
+                    el.style.setProperty('color', '#7a6a5a', 'important');
+                    el.style.setProperty('-webkit-text-fill-color', '#7a6a5a', 'important');
+                    el.style.setProperty('opacity', '1', 'important');
+                }
+            });
+
+            // Fix reseller price tag badges (£199 setup, £89/month)
+            document.querySelectorAll('.price-tag, span').forEach(function(el) {
+                var c = window.getComputedStyle(el).color;
+                if (c === 'rgb(207, 226, 196)') {
+                    el.style.setProperty('color', '#998878', 'important');
+                    el.style.setProperty('border-color', '#998878', 'important');
+                }
+            });
+
+            // Global sweep: fix any remaining light-on-cream text across the page
+            document.querySelectorAll('.entry-content div, .entry-content p, .entry-content span').forEach(function(el) {
+                if (!el.offsetParent) return;
+                var c = window.getComputedStyle(el).color;
+                var m = c.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?/);
+                if (!m) return;
+                var r = parseInt(m[1]), g = parseInt(m[2]), b = parseInt(m[3]);
+                var a = m[4] !== undefined ? parseFloat(m[4]) : 1;
+                // Light cream colors on cream bg
+                if (r > 230 && g > 220 && b > 190 && a < 0.8) {
+                    // Check parent bg isn't dark
+                    var p = el;
+                    while (p) {
+                        var pb = window.getComputedStyle(p).backgroundColor;
+                        var pm = pb.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?/);
+                        if (pm && (pm[4] === undefined || parseFloat(pm[4]) > 0.5)) {
+                            var pr = parseInt(pm[1]), pg2 = parseInt(pm[2]), pbb = parseInt(pm[3]);
+                            if (pr < 100 && pg2 < 100 && pbb < 100) return; // dark bg, text is intentionally light
+                            break;
+                        }
+                        p = p.parentElement;
+                    }
+                    el.style.setProperty('color', '#7a6a5a', 'important');
+                }
             });
         }
 
